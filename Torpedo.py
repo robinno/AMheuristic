@@ -27,9 +27,3 @@ class Torpedo:
         self.minNetto = row["minNetto"]
         self.maxNetto = row["maxNetto"]
         self.gemNetto = row["gemNetto"]
-        
-        
-# testing set
-tp = Torpedo(2)   
-
-print(tp.maxNetto)
