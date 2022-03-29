@@ -69,5 +69,5 @@ plt.figure(1)
 pos=nx.get_node_attributes(G,'pos')
 nx.draw(G, pos, node_size=50, node_color='b')
 
-print(G.edges())
+#print(G.edges())
 
