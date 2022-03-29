@@ -17,6 +17,11 @@ class Torpedo:
         df.set_index("type", inplace = True) # set index column
         return df
     
+    def number(kind):
+        df = Torpedo.loadData()
+        row = df.loc[kind]
+        return row["aantal"]
+    
     def __init__(self, kind):
         df = Torpedo.loadData()
         row = df.loc[kind]
@@ -27,3 +32,5 @@ class Torpedo:
         self.minNetto = row["minNetto"]
         self.maxNetto = row["maxNetto"]
         self.gemNetto = row["gemNetto"]
+        
+    
