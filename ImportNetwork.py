@@ -8,6 +8,9 @@ Created on Tue Mar 29 11:11:10 2022
 import networkx as nx
 import matplotlib.pyplot as plt
 
+import Visualise as vis
+from PARAMS import nG, nD, nRy, exempt_nodes
+
 
 def import_network():
     f = open('tsc.msh', 'r')
@@ -58,29 +61,6 @@ def remove_intermediary_nodes(G, exempt_nodes):
             
             G.add_edge(nb[0], nb[1], length = newlength)
             G.remove_node(nodes[i])
-        
-
-def plot_Graph(G, figNum, color_map, node_labels = False, edge_labels = False):
-    plt.figure(figNum)
-    pos=nx.get_node_attributes(G,'pos')
-    nx.draw(G, pos, node_color=color_map, with_labels = node_labels)
-    
-    if(edge_labels):
-        nx.draw_networkx_edge_labels(G, pos)
-        
-def generate_colormap(G, nG, nD, nRy):
-    color_map = []
-    for node in G:
-        if int(node) in nG:
-            color_map.append('red')
-        elif int(node) in nD:
-            color_map.append('blue')
-        elif int(node) in nRy:
-            color_map.append('green')
-        else:
-            color_map.append('black')
-            
-    return color_map
     
 
 """ EXECUTION """
@@ -91,23 +71,9 @@ plt.figure(0)
 pos=nx.get_node_attributes(G,'pos')
 nx.draw(G, pos, node_color='b')
 
-""" SPECIAL NODES """
-nGA = [75,81,90,86]
-nGB = [44,50,56,61]
-nG = nGA + nGB
-nD = [23,27]
-nRy = [2,3,10]
-crucial_corners = [14]
-
-exempt_nodes = nG+nD+nRy + crucial_corners
-
 remove_intermediary_nodes(G, exempt_nodes)
 
-
-# plot
-color_map = generate_colormap(G, nG, nD, nRy)
-plot_Graph(G, 1, color_map, node_labels = True)
-
+vis.plot_Graph(G, 1, vis.generate_colormap(G, nG, nD, nRy), node_labels = True)
 
 """ NOW, fill with discretized nodes """
 tp_length = 40
