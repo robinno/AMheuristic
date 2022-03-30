@@ -5,12 +5,22 @@ Created on Tue Mar 29 11:11:10 2022
 @author: robin
 """
 
+import math
 import networkx as nx
 import matplotlib.pyplot as plt
 
 import Visualise as vis
 from PARAMS import nG, nD, nRy, exempt_nodes
 
+def calc_EdgeLength(G, node1, node2):
+    posList = nx.get_node_attributes(G,'pos')
+    
+    (x1,y1) = posList[node1]
+    (x2,y2) = posList[node2]
+    
+    dist = math.sqrt((x1 - x2)**2 + (y1-y2)**2)    
+    return dist
+    
 
 def import_network():
     f = open('tsc.msh', 'r')
@@ -42,7 +52,9 @@ def import_network():
         
     # add edges
     for edge in fEdges:
-        G.add_edge(int(edge[5]), int(edge[6]), length = int(edge[3]))
+        n1 = int(edge[5])
+        n2 = int(edge[6])
+        G.add_edge(n1, n2, length = round(calc_EdgeLength(G, n1, n2), 2))
     
     
     G.remove_nodes_from(list(nx.isolates(G))) # REMOVE UNCONNECTED NODES 
@@ -59,7 +71,7 @@ def remove_intermediary_nodes(G, exempt_nodes):
             newlength = G.get_edge_data(nb[0],nodes[i])['length']
             newlength += G.get_edge_data(nb[1],nodes[i])['length']
             
-            G.add_edge(nb[0], nb[1], length = newlength)
+            G.add_edge(nb[0], nb[1], length = round(newlength, 2))
             G.remove_node(nodes[i])
     
 
@@ -73,7 +85,7 @@ nx.draw(G, pos, node_color='b')
 
 remove_intermediary_nodes(G, exempt_nodes)
 
-vis.plot_Graph(G, 1, vis.generate_colormap(G, nG, nD, nRy), node_labels = True)
+vis.plot_Graph(G, 1, vis.generate_colormap(G, nG, nD, nRy), node_labels = True, edge_labels=True)
 
 """ NOW, fill with discretized nodes """
 tp_length = 40
