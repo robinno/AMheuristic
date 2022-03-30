@@ -18,7 +18,7 @@ def calc_EdgeLength(G, node1, node2):
     (x1,y1) = posList[node1]
     (x2,y2) = posList[node2]
     
-    dist = math.sqrt((x1 - x2)**2 + (y1-y2)**2)    
+    dist = math.sqrt((x1 - x2)**2 + (y1-y2)**2)
     return dist
     
 
@@ -61,35 +61,34 @@ def import_network():
     
     return G
 
-def remove_intermediary_nodes(G, exempt_nodes):
-    nodes = list(G.nodes())
-    
-    for i in range(len(nodes)):    
-        nb = list(G.neighbors(nodes[i]))
-        
-        if len(nb) == 2 and nodes[i] not in exempt_nodes: 
-            newlength = G.get_edge_data(nb[0],nodes[i])['length']
-            newlength += G.get_edge_data(nb[1],nodes[i])['length']
-            
-            G.add_edge(nb[0], nb[1], length = round(newlength, 2))
-            G.remove_node(nodes[i])
-    
+#def remove_intermediary_nodes(G, exempt_nodes):
+#    nodes = list(G.nodes())
+#    
+#    for i in range(len(nodes)):    
+#        nb = list(G.neighbors(nodes[i]))
+#        
+#        if len(nb) == 2 and nodes[i] not in exempt_nodes: 
+#            newlength = G.get_edge_data(nb[0],nodes[i])['length']
+#            newlength += G.get_edge_data(nb[1],nodes[i])['length']
+#            
+#            G.add_edge(nb[0], nb[1], length = round(newlength, 2))
+#            G.remove_node(nodes[i])
 
 """ EXECUTION """
 
 G = import_network()
 
-plt.figure(0)
-pos=nx.get_node_attributes(G,'pos')
-nx.draw(G, pos, node_color='b')
-
-remove_intermediary_nodes(G, exempt_nodes)
-
-vis.plot_Graph(G, 1, vis.generate_colormap(G, nG, nD, nRy), node_labels = True, edge_labels=True)
+#plt.figure(0)
+#pos=nx.get_node_attributes(G,'pos')
+#nx.draw(G, pos, node_color='b')
+#nx.draw_networkx_edge_labels(G, pos)
+#
+#remove_intermediary_nodes(G, exempt_nodes)
+#
+vis.plot_Graph(G, 1, 15, save=True, node_labels = True)
 
 """ NOW, fill with discretized nodes """
-tp_length = 40
-
-pass # TODO
+# TODO
+# wacht, is dees nog nodig?
 
 
