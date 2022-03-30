@@ -1,3 +1,6 @@
 # ignore the big excel file
 torpedoData.xlsx
 
+# ignore all plots when generating gif
+plots/
+

@@ -21,7 +21,7 @@ def plot_Graph(G, figNum, locoPos, save = False, node_labels = False):
     node_sizes = []
     
     for node in G:
-        if int(node) == locoPos:
+        if int(node) in locoPos:
             color_map.append('lime')
         elif int(node) in nG:
             color_map.append('red')
@@ -32,7 +32,7 @@ def plot_Graph(G, figNum, locoPos, save = False, node_labels = False):
         else:
             color_map.append('black')
             
-        if int(node) == locoPos:
+        if int(node) in locoPos:
             node_sizes.append(1000)
         else:
             node_sizes.append(300)
