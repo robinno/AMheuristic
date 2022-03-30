@@ -7,8 +7,8 @@ Created on Wed Mar 30 11:53:40 2022
 
 import networkx as nx
 
-import matplotlib
-matplotlib.use("Agg") # turn off interactive plot
+#import matplotlib
+#matplotlib.use("Agg") # turn off interactive plot
 
 import matplotlib.pyplot as plt
 
@@ -46,9 +46,10 @@ def plot_Graph(G, figNum, locoPos, save = False, node_labels = False):
     figure.set_size_inches(25, 15)
     
     if(save):
-        plt.savefig("plots/{}.png".format(figNum),  dpi=100)
-        
-    plt.close()
+        plt.savefig("plots/{}.png".format(figNum),  dpi=100)    
+        plt.close()
+    else:
+        plt.show()
         
         
 def generate_GIF(G, H, locoPositions):
