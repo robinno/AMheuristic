@@ -76,7 +76,7 @@ def import_network():
 
 """ EXECUTION """
 
-G = import_network()
+#G = import_network()
 
 #plt.figure(0)
 #pos=nx.get_node_attributes(G,'pos')
@@ -85,7 +85,7 @@ G = import_network()
 #
 #remove_intermediary_nodes(G, exempt_nodes)
 #
-vis.plot_Graph(G, 1, [15, 16, 17], save=False, node_labels = True)
+#vis.plot_Graph(G, 1, [15, 16, 17], save=False, node_labels = True)
 """ NOW, fill with discretized nodes """
 # TODO
 # wacht, is dees nog nodig?

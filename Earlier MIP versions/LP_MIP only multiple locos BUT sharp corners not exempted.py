@@ -19,7 +19,7 @@ m = gp.Model("TP movements")
 G = import_network()
 N = G.size()
 
-L = 1 # number of locomotives
+L = 2 # number of locomotives
 
 H = 50 # planning horizon
 
@@ -45,17 +45,14 @@ m.addConstrs(y[n, l, t-1] + sum(y[k, l, t-1] for k in list(G.neighbors(n))) >= y
                 for l in range(L)
             )
 
-# only 1 timestep at a time op wissel
-pass # TODO
-
 
 
 # INIT TEST
-m.addConstr(y[5,0,0] == 1)
-m.addConstr(y[95,0,H-1] == 1)
+m.addConstr(y[22,0,0] == 1)
+m.addConstr(y[91,0,H-1] == 1)
 
-#m.addConstr(y[110,1,0] == 1)
-#m.addConstr(y[20,1,H-1] == 1)
+m.addConstr(y[110,1,0] == 1)
+m.addConstr(y[20,1,H-1] == 1)
 #
 #m.addConstr(y[100,2,0] == 1)
 #m.addConstr(y[15,2,H-1] == 1)
@@ -76,5 +73,4 @@ for t in range(H):
     loco_pos.append(lpos)
             
 # generate gif
-generate_GIF(G, H, loco_pos)
-    
+#generate_GIF(G, H, loco_pos)
