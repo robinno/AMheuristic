@@ -46,7 +46,7 @@ m.addConstrs(y[n, l, t-1] + sum(y[k, l, t-1] for k in list(G.neighbors(n))) >= y
                 for l in range(L)
             )
 
-# only 1 timestep at a time op wissel
+# 
 pass # TODO
 
 

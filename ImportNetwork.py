@@ -10,7 +10,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 
 import Visualise as vis
-from PARAMS import nG, nD, nRy, exempt_nodes
+from PARAMS import nG, nD, nRy, exempt_nodes, nSwitches
 
 def calc_EdgeLength(G, node1, node2):
     posList = nx.get_node_attributes(G,'pos')
@@ -20,6 +20,13 @@ def calc_EdgeLength(G, node1, node2):
     
     dist = math.sqrt((x1 - x2)**2 + (y1-y2)**2)
     return dist
+
+def load_Switches(G):
+    nSwitches.clear()
+    
+    for n in G.nodes():
+        if(len(list(G.neighbors(n))) > 2): # is this node a switch?
+            nSwitches.append(n)
     
 
 def import_network():
@@ -59,6 +66,9 @@ def import_network():
     
     G.remove_nodes_from(list(nx.isolates(G))) # REMOVE UNCONNECTED NODES 
     
+    #load the global params
+    load_Switches(G)
+    
     return G
 
 #def remove_intermediary_nodes(G, exempt_nodes):
@@ -76,7 +86,7 @@ def import_network():
 
 """ EXECUTION """
 
-#G = import_network()
+G = import_network()
 
 #plt.figure(0)
 #pos=nx.get_node_attributes(G,'pos')
@@ -85,7 +95,7 @@ def import_network():
 #
 #remove_intermediary_nodes(G, exempt_nodes)
 #
-#vis.plot_Graph(G, 1, [15, 16, 17], save=False, node_labels = True)
+vis.plot_Graph(G, 1, [15, 16, 17], save=False, node_labels = True)
 """ NOW, fill with discretized nodes """
 # TODO
 # wacht, is dees nog nodig?
