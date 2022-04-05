@@ -9,7 +9,7 @@ import pandas as pd
 
 fLocopos = r"ExcelOutput\Locopos.xlsx"
 
-def output_locopos(LocoPos):
+def output_locopos(LocoPos, loco_dir):
     df = pd.DataFrame(LocoPos)
     
     columns = []
@@ -17,6 +17,9 @@ def output_locopos(LocoPos):
         columns.append("Loco %d"%l)
     
     df.columns = columns
+    
+    for l in range(len(loco_dir)):
+        df["Loco %d direction"%l] = loco_dir[l]
     
     df.to_excel(fLocopos) 
     

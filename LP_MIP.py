@@ -58,11 +58,20 @@ m.addConstrs(y[n, l, t-1] + sum(y[k, l, t-1] for k in list(G.predecessors(n))) >
                 for l in range(L)
             )
 
-#Sharp corners
-#m.addConstrs()
+# Sharp corners => no direction change on switch
+# Split up equality constraint from IF !!!
+m.addConstrs(ld[l,t] - ld[l,t + 1] <= M * (1 - y[n,l,t]) 
+                for n in nSwitches
+                for l in range(L)
+                for t in range(H-1))
+
+m.addConstrs(ld[l,t] - ld[l,t + 1] >= - M * (1 - y[n,l,t]) 
+                for n in nSwitches
+                for l in range(L)
+                for t in range(H-1))
+
+
 pass
-
-
 
 # INIT TEST
 m.addConstr(y[5,0,0] == 1)
@@ -88,10 +97,18 @@ for t in range(H):
             if y[n,l,t].x == 1:
                 lpos.append(n)
     loco_pos.append(lpos)
+    
+# interpret ld variables
+loco_dir = []
+for l in range(L):
+    ldir = []
+    for t in range(H):
+        ldir.append(ld[l,t].x)
+    loco_dir.append(ldir)
             
 # generate gif
 generate_GIF(G, H, loco_pos)
-output_locopos(loco_pos)
+output_locopos(loco_pos, loco_dir)
 
 
     
