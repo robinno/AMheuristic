@@ -12,7 +12,7 @@ from ImportNetwork import import_network
 from Visualise import generate_GIF
 from ExportResults import output_locopos
 
-from PARAMS import nSwitches, nG, nD, nRy
+from PARAMS import nSwitches
 
 #Model definition
 m = gp.Model("TP movements")
@@ -25,15 +25,12 @@ G = import_network()
 N = G.size()
 
 L = 1 # number of locomotives
-T = 1 # number of torpedos
 
 H = 50 # planning horizon
 
 """ VARS """
-y = m.addVars(N, L, H, vtype = GRB.BINARY, name = "y")  # loco location
-ld = m.addVars(L, H, vtype = GRB.BINARY, name = "ld")   # loco direction
-
-x = m.addVars(N, T, H, vtype = GRB.BINARY, name = "x")  # tp location
+y = m.addVars(N, L, H, vtype = GRB.BINARY, name = "y")
+ld = m.addVars(L, H, vtype = GRB.BINARY, name = "ld") # locomotive direction
 
 
 """ OBJECTIVE FUNCTION """
@@ -46,12 +43,6 @@ m.addConstrs(sum(y[n, l, t] for n in list(G.nodes())) == 1
                 for l in range(L)
                 for t in range(H)
             )
-
-# Locomotive NOT on special node
-m.addConstrs(y[n,l,t] == 0 
-             for n in nG + nD + nRy
-             for l in range(L)
-             for t in range(H))
 
 # Neighbors are 1 => ROUTING
 # Mutually exclusive contraints
