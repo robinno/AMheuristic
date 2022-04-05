@@ -10,6 +10,7 @@ from gurobipy import GRB
 
 from ImportNetwork import import_network 
 from Visualise import generate_GIF
+from ExportResults import output_locopos
 
 #Model definition
 m = gp.Model("TP movements")
@@ -19,7 +20,7 @@ m = gp.Model("TP movements")
 G = import_network()
 N = G.size()
 
-L = 1 # number of locomotives
+L = 2 # number of locomotives
 
 H = 50 # planning horizon
 
@@ -77,4 +78,7 @@ for t in range(H):
             
 # generate gif
 generate_GIF(G, H, loco_pos)
+output_locopos(loco_pos)
+
+
     
