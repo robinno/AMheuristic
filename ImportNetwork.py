@@ -31,7 +31,7 @@ def load_Switches(G):
 def bound(low, high, value):
     return max(low, min(high, value))
 
-def calc_angle(posList, previous, current, nb):
+def calc_angle(G, posList, previous, current, nb):
     # using θ = cos-1 [ (a · b) / (|a| |b|) ] for the angle
     (px, py) = posList[previous]
     (cx, cy) = posList[current]
@@ -44,7 +44,7 @@ def calc_angle(posList, previous, current, nb):
     lenA = calc_EdgeLength(G, current, previous)
     lenB = calc_EdgeLength(G, current, nb)
     
-    print(dotproduct, lenA, lenB, lenA*lenB)
+#    print(dotproduct, lenA, lenB, lenA*lenB)
     
     angle = math.acos(bound(-1,1,dotproduct / (lenA*lenB)))
     
@@ -59,9 +59,9 @@ def rec_addEdge(G, DiG, previous, current, forward):
             #edge already present
             continue
         
-        angle = calc_angle(posList, previous, current, nb)
+        angle = calc_angle(G, posList, previous, current, nb)
         
-        print(previous, current, nb, angle)
+#        print(previous, current, nb, angle)
         
         if(angle < math.pi/2 or angle > 3*math.pi/2): # sharp corner
             if forward:
@@ -139,9 +139,9 @@ def import_network():
     
     #load the global params
     load_Switches(G)
-#    generate_DiGraph(G)
+    DiG = generate_DiGraph(G)
     
-    return G
+    return DiG
 
 #def remove_intermediary_nodes(G, exempt_nodes):
 #    nodes = list(G.nodes())
@@ -158,7 +158,7 @@ def import_network():
 
 """ EXECUTION """
 
-G = import_network()
+#G = import_network()
 
 #plt.figure(0)
 #pos=nx.get_node_attributes(G,'pos')
@@ -167,8 +167,8 @@ G = import_network()
 #
 #remove_intermediary_nodes(G, exempt_nodes)
 #
-DiG = generate_DiGraph(G)
-vis.plot_Graph(DiG, 1, [15, 16, 17], save=False, node_labels = True)
+#DiG = generate_DiGraph(G)
+#vis.plot_Graph(G, 1, [15, 16, 17], save=False, node_labels = True)
 
 
 

@@ -19,15 +19,18 @@ m = gp.Model("TP movements")
 
 """ PARAMS """
 
+M = 1000000 # big M
+
 G = import_network()
 N = G.size()
 
-L = 2 # number of locomotives
+L = 1 # number of locomotives
 
 H = 50 # planning horizon
 
 """ VARS """
 y = m.addVars(N, L, H, vtype = GRB.BINARY, name = "y")
+ld = m.addVars(L, H, vtype = GRB.BINARY, name = "ld") # locomotive direction
 
 
 """ OBJECTIVE FUNCTION """
@@ -42,25 +45,22 @@ m.addConstrs(sum(y[n, l, t] for n in list(G.nodes())) == 1
             )
 
 # Neighbors are 1 => ROUTING
-m.addConstrs(y[n, l, t-1] + sum(y[k, l, t-1] for k in list(G.neighbors(n))) >= y[n,l,t] 
+# Mutually exclusive contraints
+m.addConstrs(y[n, l, t-1] + sum(y[k, l, t-1] for k in list(G.successors(n))) >= y[n,l,t] - M * (1 - ld[l, t])
                 for n in list(G.nodes())
                 for t in range(1, H)
                 for l in range(L)
             )
 
-## NEEDED FOR SHARP CORNERS
-## only 1 timestep on switch 
-## I know this does give some extra constraints not inherent to the problem, but 
-## I dont have any other idea how to model this.
-#m.addConstrs(y[n,l,t-1] + y[n,l,t] <= 1 
-#             for n in nSwitches
-#             for t in range(1, H)
-#             for l in range(L))
-#
-## NEEDED FOR SHARP CORNERS
+m.addConstrs(y[n, l, t-1] + sum(y[k, l, t-1] for k in list(G.predecessors(n))) >= y[n,l,t] - M * (ld[l, t])
+                for n in list(G.nodes())
+                for t in range(1, H)
+                for l in range(L)
+            )
 
-
-pass # TODO
+#Sharp corners
+#m.addConstrs()
+pass
 
 
 

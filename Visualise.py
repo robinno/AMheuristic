@@ -42,7 +42,6 @@ def generate_node_sizes(G, locoPos):
             
     return node_sizes
 
-# TODO split up in functions
 def plot_Graph(G, figNum, locoPos, save = False, node_labels = False):
     color_map = generate_color_map(G, locoPos)
     node_sizes = generate_node_sizes(G, locoPos)
