@@ -27,6 +27,76 @@ def load_Switches(G):
     for n in G.nodes():
         if(len(list(G.neighbors(n))) > 2): # is this node a switch?
             nSwitches.append(n)
+           
+def bound(low, high, value):
+    return max(low, min(high, value))
+
+def calc_angle(posList, previous, current, nb):
+    # using θ = cos-1 [ (a · b) / (|a| |b|) ] for the angle
+    (px, py) = posList[previous]
+    (cx, cy) = posList[current]
+    (nbx, nby) = posList[nb]
+    
+    (ax, ay) = (cx-px, cy-py)
+    (bx, by) = (cx-nbx, cy-nby)
+    
+    dotproduct = ax * bx + ay * by
+    lenA = calc_EdgeLength(G, current, previous)
+    lenB = calc_EdgeLength(G, current, nb)
+    
+    print(dotproduct, lenA, lenB, lenA*lenB)
+    
+    angle = math.acos(bound(-1,1,dotproduct / (lenA*lenB)))
+    
+    return angle
+
+#probeerselke
+def rec_addEdge(G, DiG, previous, current, forward):
+    posList = nx.get_node_attributes(G,'pos') 
+    nbs = list(G.neighbors(current))
+    for nb in nbs:
+        if DiG.has_edge(current, nb) or DiG.has_edge(nb, current):
+            #edge already present
+            continue
+        
+        angle = calc_angle(posList, previous, current, nb)
+        
+        print(previous, current, nb, angle)
+        
+        if(angle < math.pi/2 or angle > 3*math.pi/2): # sharp corner
+            if forward:
+                DiG.add_edge(nb, current)
+                rec_addEdge(G, DiG, current, nb, not(forward))
+            else:
+                DiG.add_edge(current, nb)
+                rec_addEdge(G, DiG, current, nb, not(forward))
+        else:
+            if forward:
+                DiG.add_edge(current, nb)
+                rec_addEdge(G, DiG, current, nb, forward)
+            else:
+                DiG.add_edge(nb, current)
+                rec_addEdge(G, DiG, current, nb, forward)
+                
+        
+        
+def generate_DiGraph(G):
+    DiG = nx.DiGraph()
+    posList = nx.get_node_attributes(G,'pos') 
+    nodes = list(G.nodes())
+    for n in nodes:
+        DiG.add_node(n, pos=posList[n])
+    
+    #starting edge
+    previous = 68
+    current = 107
+    forward = True
+    DiG.add_edge(previous, current)
+    
+    rec_addEdge(G, DiG, previous, current, forward)
+    
+#    vis.plot_Graph(DiG, 1, [], save = False, node_labels = True)  
+    return DiG
     
 
 def import_network():
@@ -61,13 +131,15 @@ def import_network():
     for edge in fEdges:
         n1 = int(edge[5])
         n2 = int(edge[6])
-        G.add_edge(n1, n2, length = round(calc_EdgeLength(G, n1, n2), 2))
+        l = round(calc_EdgeLength(G, n1, n2), 2)
+        G.add_edge(n1, n2, length = l)
     
     
     G.remove_nodes_from(list(nx.isolates(G))) # REMOVE UNCONNECTED NODES 
     
     #load the global params
     load_Switches(G)
+#    generate_DiGraph(G)
     
     return G
 
@@ -95,7 +167,11 @@ G = import_network()
 #
 #remove_intermediary_nodes(G, exempt_nodes)
 #
-vis.plot_Graph(G, 1, [15, 16, 17], save=False, node_labels = True)
+DiG = generate_DiGraph(G)
+vis.plot_Graph(DiG, 1, [15, 16, 17], save=False, node_labels = True)
+
+
+
 """ NOW, fill with discretized nodes """
 # TODO
 # wacht, is dees nog nodig?

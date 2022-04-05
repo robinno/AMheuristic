@@ -12,8 +12,9 @@ nG = nGA + nGB
 nD = [23,27]
 nRy = [2,3,10]
 
-# todo: automatisch genereren
+# generated in import
 nSwitches = []
+AccessibleNodes2Ago = []
 
 
 # cutting the graph

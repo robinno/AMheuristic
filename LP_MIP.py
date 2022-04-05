@@ -12,6 +12,8 @@ from ImportNetwork import import_network
 from Visualise import generate_GIF
 from ExportResults import output_locopos
 
+from PARAMS import nSwitches
+
 #Model definition
 m = gp.Model("TP movements")
 
@@ -46,7 +48,18 @@ m.addConstrs(y[n, l, t-1] + sum(y[k, l, t-1] for k in list(G.neighbors(n))) >= y
                 for l in range(L)
             )
 
-# 
+## NEEDED FOR SHARP CORNERS
+## only 1 timestep on switch 
+## I know this does give some extra constraints not inherent to the problem, but 
+## I dont have any other idea how to model this.
+#m.addConstrs(y[n,l,t-1] + y[n,l,t] <= 1 
+#             for n in nSwitches
+#             for t in range(1, H)
+#             for l in range(L))
+#
+## NEEDED FOR SHARP CORNERS
+
+
 pass # TODO
 
 
