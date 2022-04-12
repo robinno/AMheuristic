@@ -7,8 +7,9 @@ Created on Wed Mar 30 11:53:40 2022
 
 import networkx as nx
 import matplotlib.pyplot as plt
-from matplotlib.widgets import Slider
 import imageio
+from tqdm import tqdm
+
 
 from PARAMS import nG, nD, nRy, nSwitches
 
@@ -74,20 +75,18 @@ def plot_Graph(G, figNum, locoPos, tp_pos, save = False, node_labels = False):
     else:
         plt.show()
         
-        
+
 def generate_GIF(G, H, locoPositions, tp_positions):
     
     print("GIF: Generating Frames")
     
     #generate frames
-    for t in range(H):
-        print("current frame: ", t)
+    for t in tqdm(range(H), position=0, leave=True):
         plot_Graph(G, t, locoPositions[t], tp_positions[t], save=True)
         
-    print("GIF: generating GIF")
+    print("GIF: Importing Frames")
     images = []
-    for t in range(H):
-        print("current frame: ", t)
+    for t in tqdm(range(H), position=0, leave=True):
         images.append(imageio.imread("plots/{}.png".format(t)))
         
     imageio.mimsave('GIF/movements.gif', images)

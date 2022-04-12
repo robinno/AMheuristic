@@ -27,7 +27,7 @@ N = G.size()
 L = 2 # number of locomotives
 T = 0 # number of torpedos
 
-H = 50 # planning horizon
+H = 30 # planning horizon
 
 """ VARS """
 y = m.addVars(N, L, H, vtype = GRB.BINARY, name = "y")  # loco location
@@ -84,6 +84,12 @@ m.addConstrs(ld[l,t] - ld[l,t + 1] >= - M * (1 - y[n,l,t])
                 for l in range(L)
                 for t in range(H-1))
 
+# TORPEDOs ADDED HERE
+# max 1 vehicle per node
+m.addConstrs(sum(y[n, l, t] for l in range(L)) + sum(x[n, i, t] for i in range(T)) <= 1
+                 for n in G.nodes()
+                 for t in range(H))
+
 # No crossing
 # n = from node
 # k = to node
@@ -94,23 +100,14 @@ m.addConstrs(y[n,l,t] + y[k,j,t] + y[n,j,t+1] + y[k,l,t+1] <= 3
                 for t in range(H-1))
 
 # =============================================================================
-# LOCO - TORPEDO BINDING CONSTRAINTS
-# =============================================================================
-
-# max 1 vehicle per node
-m.addConstrs(sum(y[n, l, t] for l in range(L)) <= 1 #+ sum(x[n, l, t] for i in range(T)) <= 1
-                 for n in G.nodes()
-                 for t in range(H))
-
-# =============================================================================
 # TORPEDO CONSTRAINTS
 # =============================================================================
 
 # tp located somewhere
-#m.addConstrs(sum(x[n, l, t] for n in list(G.nodes())) == 1 
-#                for i in range(T)
-#                for t in range(H)
-#            )
+m.addConstrs(sum(x[n, i, t] for n in list(G.nodes())) == 1 
+                for i in range(T)
+                for t in range(H)
+            )
 
 pass
 
@@ -158,8 +155,10 @@ for t in range(H):
     tp_pos.append(tpos)
 
 # generate gif
-generate_GIF(G, H, loco_pos, tp_pos)
 output_locopos(loco_pos, loco_dir)
+generate_GIF(G, H, loco_pos, tp_pos)
+
+print("Done!")
 
 
     

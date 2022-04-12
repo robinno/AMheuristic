@@ -168,7 +168,7 @@ G = import_network()
 #
 #DiG = generate_DiGraph(G)
 
-vis.plot_Graph(G, 1, [15, 16, 17], [1, 50, 95], save=False, node_labels = True)
+#vis.plot_Graph(G, 1, [15, 16, 17], [1, 50, 95], save=False, node_labels = True)
 #vis.plot_Graph(G, 1, [15, 16, 17], [1, 50, 95], save=False, node_labels = False)
 
 
