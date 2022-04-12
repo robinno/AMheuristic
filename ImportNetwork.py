@@ -50,7 +50,6 @@ def calc_angle(G, posList, previous, current, nb):
     
     return angle
 
-#probeerselke
 def rec_addEdge(G, DiG, previous, current, forward):
     posList = nx.get_node_attributes(G,'pos') 
     nbs = list(G.neighbors(current))
@@ -158,17 +157,19 @@ def import_network():
 
 """ EXECUTION """
 
-#G = import_network()
+G = import_network()
 
 #plt.figure(0)
 #pos=nx.get_node_attributes(G,'pos')
-#nx.draw(G, pos, node_color='b')
+#nx.draw(G, pos, node_color='b', font_color = 'w', with_labels = True)
 #nx.draw_networkx_edge_labels(G, pos)
 #
 #remove_intermediary_nodes(G, exempt_nodes)
 #
 #DiG = generate_DiGraph(G)
-#vis.plot_Graph(G, 1, [15, 16, 17], save=False, node_labels = True)
+
+vis.plot_Graph(G, 1, [15, 16, 17], [1, 50, 95], save=False, node_labels = True)
+#vis.plot_Graph(G, 1, [15, 16, 17], [1, 50, 95], save=False, node_labels = False)
 
 
 

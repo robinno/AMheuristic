@@ -12,12 +12,14 @@ import imageio
 
 from PARAMS import nG, nD, nRy, nSwitches
 
-def generate_color_map(G, locoPos):
+def generate_color_map(G, locoPos, tp_pos):
     color_map = []
     
     for node in G:
         if int(node) in locoPos:
             color_map.append('lime')
+        elif int(node) in tp_pos:
+            color_map.append('cyan')
         elif int(node) in nG:
             color_map.append('red')
         elif int(node) in nD:
@@ -31,44 +33,56 @@ def generate_color_map(G, locoPos):
             
     return color_map
             
-def generate_node_sizes(G, locoPos):
+def generate_node_sizes(G, locoPos, tp_pos):
     node_sizes = []
     
     for node in G:          
         if int(node) in locoPos:
             node_sizes.append(1000)
+        elif int(node) in tp_pos:
+            node_sizes.append(600)
         else:
             node_sizes.append(300)
             
     return node_sizes
 
-def plot_Graph(G, figNum, locoPos, save = False, node_labels = False):
-    color_map = generate_color_map(G, locoPos)
-    node_sizes = generate_node_sizes(G, locoPos)
+def plot_Graph(G, figNum, locoPos, tp_pos, save = False, node_labels = False):
+    color_map = generate_color_map(G, locoPos, tp_pos)
+    node_sizes = generate_node_sizes(G, locoPos, tp_pos)
     
     plt.figure(figNum)
+    
+    labeldict = {}
+    for l in range(len(locoPos)):
+        labeldict[locoPos[l]] = "L%d"%l
+    
     pos=nx.get_node_attributes(G,'pos')
-    nx.draw(G, pos, node_color=color_map, node_size = node_sizes, 
-            font_color = 'w', with_labels = node_labels)
+    
+    if(node_labels):
+        nx.draw(G, pos, node_color=color_map, node_size = node_sizes, 
+                font_color = 'w', with_labels = True)
+    else:
+        nx.draw(G, pos, node_color=color_map, node_size = node_sizes, 
+                font_color = 'w', labels = labeldict)
     
     figure = plt.gcf()
     figure.set_size_inches(25, 15)
     
     if(save):
-        plt.savefig("plots/{}.png".format(figNum),  dpi=20)    
+        plt.savefig("plots/{}.png".format(figNum),  dpi=100)    
         plt.close()
     else:
         plt.show()
         
         
-def generate_GIF(G, H, locoPositions):
+def generate_GIF(G, H, locoPositions, tp_positions):
     
     print("GIF: Generating Frames")
     
     #generate frames
     for t in range(H):
         print("current frame: ", t)
-        plot_Graph(G, t, locoPositions[t], save=True)
+        plot_Graph(G, t, locoPositions[t], tp_positions[t], save=True)
         
     print("GIF: generating GIF")
     images = []
