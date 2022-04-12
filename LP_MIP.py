@@ -7,12 +7,12 @@ Created on Tue Mar 29 13:48:16 2022
 
 import gurobipy as gp
 from gurobipy import GRB
+import pandas as pd
 
 from ImportNetwork import import_network 
 from Visualise import generate_GIF
-from ExportResults import output_locopos
 
-from PARAMS import nSwitches, nG, nD, nRy
+from PARAMS import nSwitches, nG, nD, nRy, L, T, H
 
 #Model definition
 m = gp.Model("TP movements")
@@ -23,11 +23,6 @@ M = 1000000 # big M
 
 G = import_network()
 N = G.size()
-
-L = 2 # number of locomotives
-T = 0 # number of torpedos
-
-H = 30 # planning horizon
 
 """ VARS """
 y = m.addVars(N, L, H, vtype = GRB.BINARY, name = "y")  # loco location
@@ -126,37 +121,39 @@ m.optimize()
 
 """ INTERPRET RESULTS """
 
-# interpret y variables
-loco_pos = []
+Locations = []
 for t in range(H):
-    lpos = [0]*L
-    for n in list(G.nodes()):
-        for l in range(L):
+    Location = {}
+    
+    # LOCO interpretation
+    for l in range(L):
+        
+        # direction 
+        Location["Loco %d dir"%l] = ld[l,t].x
+        
+        # position 
+        for n in list(G.nodes()):
             if y[n,l,t].x == 1:
-                lpos[l] = n
-    loco_pos.append(lpos)
-    
-# interpret ld variables
-loco_dir = []
-for l in range(L):
-    ldir = []
-    for t in range(H):
-        ldir.append(ld[l,t].x)
-    loco_dir.append(ldir)
-    
-# interpret x variables
-tp_pos = []
-for t in range(H):
-    tpos = [0]*T
-    for n in list(G.nodes()):
-        for i in range(T):
+                Location["Loco %d pos"%l] = n        
+                
+    # TP interpretation
+    for i in range(T):
+        # position 
+        for n in list(G.nodes()):
             if x[n,i,t].x == 1:
-                tpos[i] = n
-    tp_pos.append(tpos)
-
+                Location["TP %d pos"%i] = n  
+    
+    Locations.append(Location)
+    
 # generate gif
-output_locopos(loco_pos, loco_dir)
-generate_GIF(G, H, loco_pos, tp_pos)
+generate_GIF(G, Locations)
+
+
+# =============================================================================
+# OUTPUT EXCEL
+# =============================================================================
+df = pd.DataFrame(Locations)    
+df.to_excel(r"ExcelOutput\Positions.xlsx") 
 
 print("Done!")
 

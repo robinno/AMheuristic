@@ -167,9 +167,8 @@ G = import_network()
 #remove_intermediary_nodes(G, exempt_nodes)
 #
 #DiG = generate_DiGraph(G)
-
-#vis.plot_Graph(G, 1, [15, 16, 17], [1, 50, 95], save=False, node_labels = True)
-#vis.plot_Graph(G, 1, [15, 16, 17], [1, 50, 95], save=False, node_labels = False)
+#vis.plot_Graph(G, 1, [], save=False, node_labels = True)
+#vis.plot_Graph(G, 1, [], save=False, node_labels = False)
 
 
 

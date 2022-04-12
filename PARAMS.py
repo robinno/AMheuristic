@@ -16,6 +16,11 @@ nRy = [2,3,10]
 nSwitches = []
 AccessibleNodes2Ago = []
 
+# Globals
+L = 2 # number of locomotives
+T = 1 # number of torpedos
+H = 30 # planning horizon
+
 
 # cutting the graph
 crucial_corners = [14]

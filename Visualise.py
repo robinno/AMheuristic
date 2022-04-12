@@ -11,10 +11,13 @@ import imageio
 from tqdm import tqdm
 
 
-from PARAMS import nG, nD, nRy, nSwitches
+from PARAMS import nG, nD, nRy, nSwitches, L, T, H
 
-def generate_color_map(G, locoPos, tp_pos):
+def generate_color_map(G, Locations):
     color_map = []
+    
+    locoPos = [Locations["Loco %d pos"%l] for l in range(L)]
+    tp_pos = [Locations["TP %d pos"%i] for i in range(T)]
     
     for node in G:
         if int(node) in locoPos:
@@ -34,8 +37,11 @@ def generate_color_map(G, locoPos, tp_pos):
             
     return color_map
             
-def generate_node_sizes(G, locoPos, tp_pos):
+def generate_node_sizes(G, Locations):
     node_sizes = []
+    
+    locoPos = [Locations["Loco %d pos"%l] for l in range(L)]
+    tp_pos = [Locations["TP %d pos"%i] for i in range(T)]
     
     for node in G:          
         if int(node) in locoPos:
@@ -47,15 +53,15 @@ def generate_node_sizes(G, locoPos, tp_pos):
             
     return node_sizes
 
-def plot_Graph(G, figNum, locoPos, tp_pos, save = False, node_labels = False):
-    color_map = generate_color_map(G, locoPos, tp_pos)
-    node_sizes = generate_node_sizes(G, locoPos, tp_pos)
+def plot_Graph(G, figNum, Locations, save = False, node_labels = False):
+    color_map = generate_color_map(G, Locations)
+    node_sizes = generate_node_sizes(G, Locations)
     
     plt.figure(figNum)
     
     labeldict = {}
-    for l in range(len(locoPos)):
-        labeldict[locoPos[l]] = "L%d"%l
+    for l in range(L):
+        labeldict[Locations["Loco %d pos"%l]] = "L%d"%l
     
     pos=nx.get_node_attributes(G,'pos')
     
@@ -76,19 +82,20 @@ def plot_Graph(G, figNum, locoPos, tp_pos, save = False, node_labels = False):
         plt.show()
         
 
-def generate_GIF(G, H, locoPositions, tp_positions):
+def generate_GIF(G, Locations):
     
     print("GIF: Generating Frames")
     
     #generate frames
     for t in tqdm(range(H), position=0, leave=True):
-        plot_Graph(G, t, locoPositions[t], tp_positions[t], save=True)
+        plot_Graph(G, t, Locations[t], save=True)
         
     print("GIF: Importing Frames")
     images = []
     for t in tqdm(range(H), position=0, leave=True):
         images.append(imageio.imread("plots/{}.png".format(t)))
         
+    print("GIF: constructing gif")
     imageio.mimsave('GIF/movements.gif', images)
        
 
