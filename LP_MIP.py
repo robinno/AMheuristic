@@ -25,15 +25,18 @@ m = gp.Model("TP movements")
 """ PARAMS """
 M = 1000000 # big M
 
-G = import_network()
+#G = import_network()
 
 ##########################
 #### TEST: small network
-#G = nx.DiGraph()
-#G.add_nodes_from([0, 1, 2, 3, 4])
-#G.add_edges_from([(0,1), (1,2), (2,3), (4,3)])
-#
-#nx.draw(G, with_labels = True)
+G = nx.DiGraph()
+for n in range(6+1):
+    G.add_node(n, pos =(float(n),float(n)))
+    if not(n==0):
+        G.add_edge(n-1,n)
+
+pos=nx.get_node_attributes(G,'pos')
+nx.draw(G, pos, with_labels = True)
 ###############################
 
 N = len(G.nodes())
@@ -52,12 +55,14 @@ cf = m.addVars(L, T, H, vtype = GRB.BINARY, name = "cf")       # connection fron
 #Nb = m.addVars(E, L, T, H, vtype = GRB.BINARY, name = "Nb")    # Neighbors back
 #cb = m.addVars(L, T, H, vtype = GRB.BINARY, name = "cb")       # connection back
 
+tm = m.addVars(T, H, vtype = GRB.BINARY, name = "tm")   #torpedo is movable
+
 
 """ OBJECTIVE FUNCTION """
-#m.setObjective(1, GRB.MINIMIZE)
-m.setObjective(sum(cf[l,j,t] for l in range(L) for j in range(T) for t in range(H)),
-               GRB.MAXIMIZE
-               )
+m.setObjective(1, GRB.MINIMIZE)
+#m.setObjective(sum(cf[l,j,t] for l in range(L) for j in range(T) for t in range(H)),
+#               GRB.MAXIMIZE
+#               )
 
 """ CONSTRAINTS """
 
@@ -72,10 +77,10 @@ m.addConstrs(sum(y[n, l, t] for n in G.nodes()) == 1
             )
 
 # Locomotive NOT on special node
-m.addConstrs(y[n,l,t] == 0 
-             for n in nG + nD
-             for l in range(L)
-             for t in range(H))
+#m.addConstrs(y[n,l,t] == 0 
+#             for n in nG + nD
+#             for l in range(L)
+#             for t in range(H))
 
 # Neighbors are 1 => ROUTING
 # Mutually exclusive contraints
@@ -93,17 +98,17 @@ m.addConstrs(y[n, l, t-1] + sum(y[k, l, t-1] for k in list(G.predecessors(n))) >
 
 # Sharp corners => no direction change on switch
 # Split up equality constraint from IF !!!
-m.addConstrs(ld[l,t] - ld[l,t + 1] <= M * (1 - y[n,l,t]) 
-                for n in nSwitches
-                for l in range(L)
-                for t in range(H-1)
-            )
-
-m.addConstrs(ld[l,t] - ld[l,t + 1] >= - M * (1 - y[n,l,t]) 
-                for n in nSwitches
-                for l in range(L)
-                for t in range(H-1)
-            )
+#m.addConstrs(ld[l,t] - ld[l,t + 1] <= M * (1 - y[n,l,t]) 
+#                for n in nSwitches
+#                for l in range(L)
+#                for t in range(H-1)
+#            )
+#
+#m.addConstrs(ld[l,t] - ld[l,t + 1] >= - M * (1 - y[n,l,t]) 
+#                for n in nSwitches
+#                for l in range(L)
+#                for t in range(H-1)
+#            )
 
 # TORPEDOs ADDED HERE
 # max 1 vehicle per node
@@ -129,20 +134,26 @@ m.addConstrs(y[n,l,t] + y[k,j,t] + y[n,j,t+1] + y[k,l,t+1] <= 3
 # tp located somewhere
 m.addConstrs(sum(x[n, i, t] for n in G.nodes()) == 1
                 for i in range(T)
-                for t in range(H)
+                for t in range(H-1)
             )
+
+# set the tp moveable flag: is it connected?
+m.addConstrs(2 * tm[i,t] <= sum(cf[l,i,t] + cf[l,i,t+1] for l in range(L))
+                for i in range(T)
+                for t in range(H-1))
+
 
 # SPLIT UP CONSTRAINT:
 # only move the TP if its connected
-#m.addConstrs(x[n,i,t] - x[n,i,t+1] <= M * sum(cf[l,i,t] for l in range(L))
-#                for n in G.nodes()
-#                for i in range(T)
-#                for t in range(H-1))
-#
-#m.addConstrs(x[n,i,t] - x[n,i,t+1] >= - M * sum(cf[l,i,t] for l in range(L))
-#                for n in G.nodes()
-#                for i in range(T)
-#                for t in range(H-1))
+m.addConstrs(x[n,i,t] - x[n,i,t+1] <= M * tm[i,t]
+                for n in G.nodes()
+                for i in range(T)
+                for t in range(H-1))
+
+m.addConstrs(x[n,i,t] - x[n,i,t+1] >= - M * tm[i,t]
+                for n in G.nodes()
+                for i in range(T)
+                for t in range(H-1))
 
 # =============================================================================
 # CONNECTIONS
@@ -201,8 +212,11 @@ pass
 #m.addConstr(y[1,0,2] == 1)
 #m.addConstr(x[2,0,2] == 1)
 #
-#m.addConstr(y[2,0,4] == 1)
-#m.addConstr(x[1,0,4] == 1)
+m.addConstr(y[6,0,0] == 1)
+m.addConstr(x[1,0,0] == 1)
+
+m.addConstr(y[6,0,12] == 1)
+m.addConstr(x[2,0,12] == 1)
 
 
 """ RUN THE MODEL """
@@ -245,6 +259,10 @@ for t in range(H):
                 connectedTP = j
         
         Location["Loco %d connected to TP"%l] = connectedTP
+        
+    # torpedo moveable
+    for i in range(T):
+        Location["TP %d moveable flag"%i] = (tm[i,t].x == 1)
     
     
     # append per timeslot
@@ -258,7 +276,7 @@ df = pd.DataFrame(Locations)
 df.to_excel(r"ExcelOutput\Positions.xlsx") 
 
 # generate gif
-#generate_GIF(G, Locations)
+generate_GIF(G, Locations)
 
 print("Done!")
 
