@@ -62,7 +62,9 @@ def plot_Graph(G, figNum, Locations, save = False, node_labels = False):
     labeldict = {}
     for l in range(L):
         labeldict[Locations["Loco %d pos"%l]] = "L%d"%l
-    
+    for j in range(T):
+        labeldict[Locations["TP %d pos"%j]] = "TP%d"%j
+        
     pos=nx.get_node_attributes(G,'pos')
     
     if(node_labels):

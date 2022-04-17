@@ -17,9 +17,9 @@ nSwitches = []
 AccessibleNodes2Ago = []
 
 # Globals
-L = 2 # number of locomotives
-T = 1 # number of torpedos
-H = 30 # planning horizon
+L = 1 # number of locomotives
+T = 1 # number of torpedoes
+H = 10 # planning horizon
 
 
 # cutting the graph

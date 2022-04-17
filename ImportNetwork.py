@@ -28,6 +28,17 @@ def load_Switches(G):
         if(len(list(G.neighbors(n))) > 2): # is this node a switch?
             nSwitches.append(n)
            
+def rename_nodes(G):    
+    for i in range(len(G.nodes())):
+        if i not in G.nodes():
+            last = sorted(list(G.nodes())).pop()
+#            print(last)
+            mapping = {last: i}
+            G = nx.relabel_nodes(G, mapping)
+    
+#    print(G.nodes())
+    return G
+    
 def bound(low, high, value):
     return max(low, min(high, value))
 
@@ -135,6 +146,8 @@ def import_network():
     
     
     G.remove_nodes_from(list(nx.isolates(G))) # REMOVE UNCONNECTED NODES 
+    
+    G = rename_nodes(G)
     
     #load the global params
     load_Switches(G)
