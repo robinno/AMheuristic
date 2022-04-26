@@ -147,7 +147,7 @@ def import_network():
     
     G.remove_nodes_from(list(nx.isolates(G))) # REMOVE UNCONNECTED NODES 
     
-    G = rename_nodes(G)
+#    G = rename_nodes(G)
     
     #load the global params
     load_Switches(G)

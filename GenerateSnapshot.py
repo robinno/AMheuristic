@@ -8,9 +8,13 @@ Created on Mon Apr 25 12:21:43 2022
 import pandas as pd
 from datetime import datetime, timedelta
 
+import Torpedo as tp
+
 from PARAMS import ph, ri
-from Visualise import plot_Graph
+from Visualise import plot_Graph2
 from ImportNetwork import import_network
+
+
 
 def importTpData(StartTime = '2017-08-26 15:03:00'):
 
@@ -51,8 +55,7 @@ df = importTpData()
 
 
 usedTPs = list(df["Tp"].unique())
-
-Locations = {}
+Torpedoes = [tp.Torpedo(i) for i in usedTPs]
 
 # first 5 TPs => 1 under each hole, 3 reserves:
 nodesA = [75,81,126,87,86]
@@ -61,9 +64,9 @@ EersteAftapA = GietA.iloc[0]["Aftap"]
 
 for i in range(5):
     if(GietA.iloc[i]["Aftap"] == EersteAftapA):
-        tp = GietA.iloc[i]["Tp"]
-        Locations["TP %d pos"%tp] = nodesA[i]
-        usedTPs.remove(tp)
+        n = GietA.iloc[i]["Tp"]
+        torpedo = [x for x in Torpedoes if x.number == n][0]
+        torpedo.location = nodesA[i]
     
 
 nodesB = [44,50,56,100,57]
@@ -72,8 +75,8 @@ EersteAftapB = GietB.iloc[0]["Aftap"]
 
 for i in range(5):
     if(GietB.iloc[i]["Aftap"] == EersteAftapB):
-        tp = GietB.iloc[i]["Tp"]
-        Locations["TP %d pos"%tp] = nodesB[i]
-        usedTPs.remove(tp)
+        n = GietB.iloc[i]["Tp"]
+        torpedo = [x for x in Torpedoes if x.number == n][0]
+        torpedo.location = nodesB[i]
         
-plot_Graph(import_network(), 0, Locations, [1, 11, 20, 21, 25, 4, 5, 7])
+plot_Graph2(import_network(), Torpedoes)
