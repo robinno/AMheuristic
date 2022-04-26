@@ -22,15 +22,18 @@ class Torpedo:
         row = df.loc[kind]
         return row["aantal"]
     
-    def __init__(self, kind):
-        df = Torpedo.loadData()
-        row = df.loc[kind]
+#    def __init__(self, kind):
+#        df = Torpedo.loadData()
+#        row = df.loc[kind]
+#        
+#        self.kind = kind
+#        self.typename = row["Typename"]
+#        self.tarra = row["tarra"]
+#        self.minNetto = row["minNetto"]
+#        self.maxNetto = row["maxNetto"]
+#        self.gemNetto = row["gemNetto"]
         
-        self.kind = kind
-        self.typename = row["Typename"]
-        self.tarra = row["tarra"]
-        self.minNetto = row["minNetto"]
-        self.maxNetto = row["maxNetto"]
-        self.gemNetto = row["gemNetto"]
-        
+    
+    def __init__(self, number):        
+        self.number = number
     

@@ -22,21 +22,26 @@ def edgeIndex(G, edge):
 #Model definition
 m = gp.Model("TP movements")
 
-""" PARAMS """
-M = 1000000 # big M
+""" TUNING """
 
-#G = import_network()
+m.params.MIPFocus = 1 # focus on finding feasible solutions
+m.params.Presolve = 2 # aggressive presolve
+
+""" PARAMS """
+M = 1000 # big M
+
+G = import_network()
 
 ##########################
 #### TEST: small network
-G = nx.DiGraph()
-for n in range(6+1):
-    G.add_node(n, pos =(float(n),float(n)))
-    if not(n==0):
-        G.add_edge(n-1,n)
+#G = nx.DiGraph()
+#for n in range(6+1):
+#    G.add_node(n, pos =(float(n),float(n)))
+#    if not(n==0):
+#        G.add_edge(n-1,n)
 
-pos=nx.get_node_attributes(G,'pos')
-nx.draw(G, pos, with_labels = True)
+#pos=nx.get_node_attributes(G,'pos')
+#nx.draw(G, pos, with_labels = True)
 ###############################
 
 N = len(G.nodes())
@@ -54,7 +59,7 @@ cf = m.addVars(L, T, H, vtype = GRB.BINARY, name = "cf")       # connection fron
 Nb = m.addVars(E, L, T, H, vtype = GRB.BINARY, name = "Nb")    # Neighbors back
 cb = m.addVars(L, T, H, vtype = GRB.BINARY, name = "cb")       # connection back
 
-tm = m.addVars(T, H, vtype = GRB.BINARY, name = "tm")   #torpedo is movable
+tm = m.addVars(T, H, vtype = GRB.BINARY, name = "tm")   #torpedo is allowed to move (moveable)
 
 
 """ OBJECTIVE FUNCTION """
@@ -76,10 +81,10 @@ m.addConstrs(sum(y[n, l, t] for n in G.nodes()) == 1
             )
 
 # Locomotive NOT on special node
-#m.addConstrs(y[n,l,t] == 0 
-#             for n in nG + nD
-#             for l in range(L)
-#             for t in range(H))
+m.addConstrs(y[n,l,t] == 0 
+             for n in nG + nD
+             for l in range(L)
+             for t in range(H))
 
 # Neighbors are 1 => ROUTING
 # Mutually exclusive contraints
@@ -97,17 +102,17 @@ m.addConstrs(y[n, l, t] + sum(y[k, l, t] for k in list(G.predecessors(n))) >= y[
 
 # Sharp corners => no direction change on switch
 # Split up equality constraint from IF !!!
-#m.addConstrs(ld[l,t] - ld[l,t + 1] <= M * (1 - y[n,l,t]) 
-#                for n in nSwitches
-#                for l in range(L)
-#                for t in range(H-1)
-#            )
-#
-#m.addConstrs(ld[l,t] - ld[l,t + 1] >= - M * (1 - y[n,l,t]) 
-#                for n in nSwitches
-#                for l in range(L)
-#                for t in range(H-1)
-#            )
+m.addConstrs(ld[l,t] - ld[l,t + 1] <= M * (1 - y[n,l,t]) 
+                for n in nSwitches
+                for l in range(L)
+                for t in range(H-1)
+            )
+
+m.addConstrs(ld[l,t] - ld[l,t + 1] >= - M * (1 - y[n,l,t]) 
+                for n in nSwitches
+                for l in range(L)
+                for t in range(H-1)
+            )
 
 # TORPEDOs ADDED HERE
 # max 1 vehicle per node
@@ -167,7 +172,7 @@ m.addConstrs(2 * tm[i,t] <= sum(cf[l,i,t] + cf[l,i,t+1] + cb[l,i,t] + cb[l,i,t+1
 
 
 # SPLIT UP CONSTRAINT:
-# only move the TP if its connected
+# only move the TP if its moveable
 m.addConstrs(x[n,i,t] - x[n,i,t+1] <= M * tm[i,t]
                 for n in G.nodes()
                 for i in range(T)
@@ -243,11 +248,11 @@ pass
 #m.addConstr(y[1,0,2] == 1)
 #m.addConstr(x[2,0,2] == 1)
 #
-m.addConstr(y[1,0,0] == 1)
-m.addConstr(x[6,0,0] == 1)
+m.addConstr(y[69,0,0] == 1)
+m.addConstr(x[44,0,0] == 1)
 
-m.addConstr(y[1,0,12] == 1)
-m.addConstr(x[5,0,12] == 1)
+m.addConstr(y[69,0,H-3] == 1)
+m.addConstr(x[27,0,H-3] == 1)
 
 
 """ RUN THE MODEL """

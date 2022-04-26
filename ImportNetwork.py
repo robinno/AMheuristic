@@ -170,7 +170,7 @@ def import_network():
 
 """ EXECUTION """
 
-G = import_network()
+#G = import_network()
 
 #plt.figure(0)
 #pos=nx.get_node_attributes(G,'pos')

@@ -13,11 +13,14 @@ from tqdm import tqdm
 
 from PARAMS import nG, nD, nRy, nSwitches, L, T, H
 
-def generate_color_map(G, Locations):
+def generate_color_map(G, Locations, UsedTPs = list(range(T)), UsedLocos = list(range(L))):
     color_map = []
+    locoPos = []
+    tp_pos = []
     
-    locoPos = [Locations["Loco %d pos"%l] for l in range(L)]
-    tp_pos = [Locations["TP %d pos"%i] for i in range(T)]
+    if(Locations):
+        locoPos = [Locations["Loco %d pos"%l] for l in UsedLocos]
+        tp_pos = [Locations["TP %d pos"%i] for i in UsedTPs]
     
     for node in G:
         if int(node) in locoPos:
@@ -37,11 +40,15 @@ def generate_color_map(G, Locations):
             
     return color_map
             
-def generate_node_sizes(G, Locations):
+def generate_node_sizes(G, Locations, UsedTPs = list(range(T)), UsedLocos = list(range(L))):
     node_sizes = []
     
-    locoPos = [Locations["Loco %d pos"%l] for l in range(L)]
-    tp_pos = [Locations["TP %d pos"%i] for i in range(T)]
+    locoPos = []
+    tp_pos = []
+    
+    if(Locations):    
+        locoPos = [Locations["Loco %d pos"%l] for l in UsedLocos]
+        tp_pos = [Locations["TP %d pos"%i] for i in UsedTPs]
     
     for node in G:          
         if int(node) in locoPos:
@@ -53,20 +60,22 @@ def generate_node_sizes(G, Locations):
             
     return node_sizes
 
-def plot_Graph(G, figNum, Locations, save = False, node_labels = False):
-    color_map = generate_color_map(G, Locations)
-    node_sizes = generate_node_sizes(G, Locations)
+def plot_Graph(G, figNum, Locations, UsedTPs = list(range(T)), UsedLocos = list(range(L)), save = False, node_labels = False):
+    pos=nx.get_node_attributes(G,'pos')
+
+    color_map = generate_color_map(G, Locations, UsedTPs, UsedLocos)
+    node_sizes = generate_node_sizes(G, Locations, UsedTPs, UsedLocos)
     
     plt.figure(figNum)
     
     labeldict = {}
-    for l in range(L):
-        labeldict[Locations["Loco %d pos"%l]] = "L%d"%l
-    for j in range(T):
-        labeldict[Locations["TP %d pos"%j]] = "TP%d"%j
-        
-    pos=nx.get_node_attributes(G,'pos')
     
+    if(Locations):
+        for l in UsedLocos:
+            labeldict[Locations["Loco %d pos"%l]] = "L%d"%l
+        for j in UsedTPs:
+            labeldict[Locations["TP %d pos"%j]] = "TP%d"%j
+
     if(node_labels):
         nx.draw(G, pos, node_color=color_map, node_size = node_sizes, 
                 font_color = 'w', with_labels = True)

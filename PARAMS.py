@@ -16,12 +16,29 @@ nRy = [2,3,10]
 nSwitches = []
 AccessibleNodes2Ago = []
 
-# Globals
-L = 1 # number of locomotives
-T = 1 # number of torpedoes
-H = 15 # planning horizon
-
+# global
+loco_speed = 10 # in km/h
 
 # cutting the graph
 crucial_corners = [14]
 exempt_nodes = nG+nD+nRy + crucial_corners
+
+# conversions
+timestep = 3.6 * 20 / loco_speed # tp has length of 20 m
+
+# Planning Horizon in seconds
+ph = 24* 3600
+ri = 6 * 3600
+
+H = round(ph / timestep)
+#H = 100 # testing
+run_in = round(ri / timestep) # number of timesteps run-in
+
+# Globals
+T = 0 # number of torpedoes => TESTING
+L = 0 # number of locomotives
+
+
+
+
+
