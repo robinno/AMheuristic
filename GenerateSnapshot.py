@@ -5,78 +5,85 @@ Created on Mon Apr 25 12:21:43 2022
 @author: robin
 """
 
-import pandas as pd
-from datetime import datetime, timedelta
+import Torpedo as torp
+import Locomotive as Loco
 
-import Torpedo as tp
-
-from PARAMS import ph, ri
 from Visualise import plot_Graph2
 from ImportNetwork import import_network
+from ImportTPdata import importTpData
 
+def generate_TPlocations(G):
 
-
-def importTpData(StartTime = '2017-08-26 15:03:00'):
-
-    filepath = r'torpedoData.xlsx'
+    usedTPs = list(df["Tp"].unique())
+    Torpedoes = [torp.Torpedo(i) for i in usedTPs]
     
-    # convert StartTime
-    StartTime = datetime.strptime(StartTime, '%Y-%m-%d %H:%M:%S')
+    # first 5 TPs => 1 under each hole, 3 reserves:
+    nodesA = [75,81,127,92,91]
+    GietA = df[df["Hoo"] == 'A']
+    EersteAftapA = GietA.iloc[0]["Aftap"]
     
-    # import dataframe
-    df = pd.read_excel(filepath)
+    iA = 0
     
-    # throw away columns which we wont need:
-    del df["m_ry"]
-    del df["CaD"]
-    del df["Debiet_CaD"]
-    del df["CaD_per_mry"]
-    del df["Volume_gas"]
-    del df["S_gevr"]
-    del df["S_hoo"]
-    del df["S_voor"]
-    del df["S_her"]
-    del df["S_werk"]
-    del df["temp_ho"]
-    
-    # format the date and time
-    df["Tijdstip"] = pd.to_datetime(df["Tijdstip"])
-    
-    # filter the dataframe:
-    secondsToAdd = ph + ri
-    EndTime = StartTime + timedelta(seconds = secondsToAdd)
-    EndTime = str(EndTime)
-    
-    df = df[(df['Tijdstip'] > str(StartTime)) & (df['Tijdstip'] < str(EndTime))]
-    
-    return df
-
-df = importTpData()
-
-
-usedTPs = list(df["Tp"].unique())
-Torpedoes = [tp.Torpedo(i) for i in usedTPs]
-
-# first 5 TPs => 1 under each hole, 3 reserves:
-nodesA = [75,81,126,87,86]
-GietA = df[df["Hoo"] == 'A']
-EersteAftapA = GietA.iloc[0]["Aftap"]
-
-for i in range(5):
-    if(GietA.iloc[i]["Aftap"] == EersteAftapA):
-        n = GietA.iloc[i]["Tp"]
-        torpedo = [x for x in Torpedoes if x.number == n][0]
-        torpedo.location = nodesA[i]
-    
-
-nodesB = [44,50,56,100,57]
-GietB = df[df["Hoo"] == 'B']
-EersteAftapB = GietB.iloc[0]["Aftap"]
-
-for i in range(5):
-    if(GietB.iloc[i]["Aftap"] == EersteAftapB):
-        n = GietB.iloc[i]["Tp"]
-        torpedo = [x for x in Torpedoes if x.number == n][0]
-        torpedo.location = nodesB[i]
+    for i in range(5):
+        if(GietA.iloc[i]["Aftap"] == EersteAftapA):
+            n = GietA.iloc[i]["Tp"]
+            torpedo = [x for x in Torpedoes if x.number == n][0]
+            torpedo.location = nodesA[i]
+            iA = i
         
-plot_Graph2(import_network(), Torpedoes)
+    
+    nodesB = [44,50,105,63,101]
+    GietB = df[df["Hoo"] == 'B']
+    EersteAftapB = GietB.iloc[0]["Aftap"]
+    
+    iB = 0
+    
+    for i in range(5):
+        if(GietB.iloc[i]["Aftap"] == EersteAftapB):
+            n = GietB.iloc[i]["Tp"]
+            torpedo = [x for x in Torpedoes if x.number == n][0]
+            torpedo.location = nodesB[i]
+            iB = i
+            
+    # next 2 tps under the other casting hole
+    nodesA = [86,90]
+    TweedeAftapA = GietA.iloc[iA + 1]["Aftap"]
+    
+    for i in range(iA+1, iA + 3):
+        if(GietA.iloc[i]["Aftap"] == TweedeAftapA):
+            n = GietA.iloc[i]["Tp"]
+            torpedo = [x for x in Torpedoes if x.number == n][0]
+            torpedo.location = nodesA[i - iA - 1]
+            
+    nodesB = [56,61]
+    TweedeAftapB = GietB.iloc[iB + 1]["Aftap"]
+    
+    for i in range(iB+1, iB + 3):
+        if(GietB.iloc[i]["Aftap"] == TweedeAftapB):
+            n = GietB.iloc[i]["Tp"]
+            torpedo = [x for x in Torpedoes if x.number == n][0]
+            torpedo.location = nodesB[i - iB - 1]
+            
+    # put the other TPs on the straight
+    remainingTPs = [tp for tp in Torpedoes if tp.location == None]
+    currnode = 171
+    
+    for tp in remainingTPs:
+        tp.location = currnode
+        currnode = list(G.successors(currnode))[0]
+        
+    return Torpedoes
+        
+
+G = import_network()
+df = importTpData()
+Torpedoes = generate_TPlocations(G)
+
+#Locomotive locations:
+Locomotives = [Loco.Locomotive("A", 36),
+               Loco.Locomotive("B", 67),
+               Loco.Locomotive("C", 21)]
+
+
+#plot_Graph2(G, [tp for tp in Torpedoes if tp.location != None], [l for l in Locomotives if l.location != None])
+plot_Graph2(G, Torpedoes, Locomotives)

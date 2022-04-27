@@ -25,14 +25,14 @@ def generate_node_sizes_LOCATIONS(G, Locations, UsedTPs = list(range(T)), UsedLo
     return generate_node_sizes(G, locoPos, tp_pos)
 
 
-def generate_color_map_TORPEDOES(G, Torpedoes):
-    locoPos = []
+def generate_color_map_TORPEDOES(G, Torpedoes, Locomotives):
+    locoPos = [l.location for l in Locomotives if not (l.location == None)]
     tp_pos = [tp.location for tp in Torpedoes if not (tp.location == None)]
     
     return generate_color_map(G, locoPos, tp_pos)
 
-def generate_node_sizes_TORPEDOES(G, Torpedoes):
-    locoPos = []
+def generate_node_sizes_TORPEDOES(G, Torpedoes, Locomotives):
+    locoPos = [l.location for l in Locomotives if not (l.location == None)]
     tp_pos = [tp.location for tp in Torpedoes if not (tp.location == None)]
     
     return generate_node_sizes(G, locoPos, tp_pos)
@@ -102,16 +102,16 @@ def plot_Graph(G, figNum, Locations, UsedTPs = list(range(T)), UsedLocos = list(
     else:
         plt.show()
         
-def plot_Graph2(G, Torpedoes):
+def plot_Graph2(G, Torpedoes, Locomotives):
     pos=nx.get_node_attributes(G,'pos')
 
-    color_map = generate_color_map_TORPEDOES(G, Torpedoes)
-    node_sizes = generate_node_sizes_TORPEDOES(G, Torpedoes)
+    color_map = generate_color_map_TORPEDOES(G, Torpedoes, Locomotives)
+    node_sizes = generate_node_sizes_TORPEDOES(G, Torpedoes, Locomotives)
     
     labeldict = {}
 
-#    for l in UsedLocos:
-#        labeldict[Locations["Loco %d pos"%l]] = "L%d"%l
+    for l in Locomotives:
+        labeldict[l.location] = "L%s"%l.name
     for tp in Torpedoes:
         labeldict[tp.location] = "TP%d"%tp.number
 
