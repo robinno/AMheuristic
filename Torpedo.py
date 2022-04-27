@@ -37,4 +37,5 @@ class Torpedo:
     def __init__(self, number):        
         self.number = number
         self.location = None
+        self.state = "Empty"
     

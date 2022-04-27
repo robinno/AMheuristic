@@ -13,6 +13,8 @@ from ImportNetwork import import_network
 from ImportTPdata import importTpData
 
 def generate_TPlocations(G):
+    
+    df = importTpData()
 
     usedTPs = list(df["Tp"].unique())
     Torpedoes = [torp.Torpedo(i) for i in usedTPs]
@@ -76,7 +78,6 @@ def generate_TPlocations(G):
         
 
 G = import_network()
-df = importTpData()
 Torpedoes = generate_TPlocations(G)
 
 #Locomotive locations:
