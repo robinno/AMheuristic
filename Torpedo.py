@@ -11,16 +11,16 @@ class Torpedo:
     
     # static method to load data
     # STATIC
-    def loadData():
-        file = r"torpedoInitialisation.xlsx"
-        df = pd.read_excel(file)
-        df.set_index("type", inplace = True) # set index column
-        return df
-    
-    def number(kind):
-        df = Torpedo.loadData()
-        row = df.loc[kind]
-        return row["aantal"]
+#    def loadData():
+#        file = r"torpedoInitialisation.xlsx"
+#        df = pd.read_excel(file)
+#        df.set_index("type", inplace = True) # set index column
+#        return df
+#    
+#    def number(kind):
+#        df = Torpedo.loadData()
+#        row = df.loc[kind]
+#        return row["aantal"]
     
 #    def __init__(self, kind):
 #        df = Torpedo.loadData()
@@ -38,4 +38,5 @@ class Torpedo:
         self.number = number
         self.location = None
         self.state = "Empty"
+        self.tasks = []
     

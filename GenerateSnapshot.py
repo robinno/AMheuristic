@@ -75,16 +75,19 @@ def generate_TPlocations(G):
         currnode = list(G.successors(currnode))[0]
         
     return Torpedoes
-        
+
+def generate_Locolocations(G):
+    #Locomotive locations:
+    Locomotives = [Loco.Locomotive("A", 36),
+                   Loco.Locomotive("B", 67),
+                   Loco.Locomotive("C", 21)]
+    
+    return Locomotives
+    
 
 G = import_network()
 Torpedoes = generate_TPlocations(G)
-
-#Locomotive locations:
-Locomotives = [Loco.Locomotive("A", 36),
-               Loco.Locomotive("B", 67),
-               Loco.Locomotive("C", 21)]
-
+Locomotives = generate_Locolocations(G)
 
 #plot_Graph2(G, [tp for tp in Torpedoes if tp.location != None], [l for l in Locomotives if l.location != None])
 plot_Graph2(G, Torpedoes, Locomotives)

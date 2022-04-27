@@ -38,6 +38,9 @@ run_in = round(ri / timestep) # number of timesteps run-in
 T = 0 # number of torpedoes => TESTING
 L = 0 # number of locomotives
 
+# where to pick the data
+StartTime = '2017-08-26 15:03:00'
+
 
 
 
