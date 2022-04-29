@@ -102,7 +102,7 @@ def plot_Graph(G, figNum, Locations, UsedTPs = list(range(T)), UsedLocos = list(
     else:
         plt.show()
         
-def plot_Graph2(G, Torpedoes, Locomotives):
+def plot_Graph2(G, t, Torpedoes, Locomotives):
     pos=nx.get_node_attributes(G,'pos')
 
     color_map = generate_color_map_TORPEDOES(G, Torpedoes, Locomotives)
@@ -111,9 +111,9 @@ def plot_Graph2(G, Torpedoes, Locomotives):
     labeldict = {}
 
     for l in Locomotives:
-        labeldict[l.location] = "L%s"%l.name
+        labeldict[int(l.location[t])] = "L%s"%l.name
     for tp in Torpedoes:
-        labeldict[tp.location] = "TP%d"%tp.number
+        labeldict[int(tp.location[t])] = "TP%d"%tp.number
 
 
     nx.draw(G, pos, node_color=color_map, node_size = node_sizes, 

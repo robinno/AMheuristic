@@ -34,9 +34,9 @@ class Torpedo:
 #        self.gemNetto = row["gemNetto"]
         
     
-    def __init__(self, number):        
+    def __init__(self, number):   
         self.number = number
-        self.location = None
-        self.state = "Empty"
+        self.location = [None]
+        self.state = ["Empty"]
         self.tasks = []
     

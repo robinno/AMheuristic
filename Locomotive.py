@@ -8,4 +8,4 @@ Created on Wed Apr 27 16:46:36 2022
 class Locomotive:    
     def __init__(self, name, location):        
         self.name = name
-        self.location = location
+        self.location = [location]
