@@ -2,5 +2,5 @@
 torpedoData.xlsx
 
 # ignore all plots when generating gif
-plots/
+plots\
 

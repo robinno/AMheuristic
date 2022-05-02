@@ -17,6 +17,7 @@ from Task import Task
 
 from Visualise import plot_Graph2
 from ImportNetwork import import_network
+from GenerateRoutes import calc_Min_Traveltime
 
 from PARAMS import ph, ri, nD, nRy, nGA, nGB, StartTime, timestep
 from PARAMS import connect_slots, D_config_slots
@@ -67,6 +68,8 @@ def importTpData():
         data.append(dict(row))
     
     df = pd.DataFrame(data)
+    
+    df.reset_index(drop = True) # reset the index
         
     # blaasduur in timeslots
     df["Blaasduur"] = (df["Blaasduur"] / timestep).apply(np.ceil)
@@ -141,14 +144,18 @@ def generate_TPlocations(G):
     GietA = df[df["Hoo"] == 'A']
     EersteAftapA = GietA.iloc[0]["Aftap"]
     
+    remainingTPs = [tp for tp in Torpedoes if tp.location[0] == None]
+    
     iA = 0
     
-    for i in range(5):
+    for i in range(min(5, len(remainingTPs))):
         if(GietA.iloc[i]["Aftap"] == EersteAftapA):
             n = GietA.iloc[i]["Tp"]
             torpedo = [x for x in Torpedoes if x.number == n][0]
-            torpedo.location = [nodesA[i]]
+            torpedo.location[0] = nodesA[i]
             iA = i
+            
+    remainingTPs = [tp for tp in Torpedoes if tp.location[0] == None]
         
     
     nodesB = [44,50,105,63,101]
@@ -157,123 +164,53 @@ def generate_TPlocations(G):
     
     iB = 0
     
-    for i in range(5):
+    for i in range(min(5, len(remainingTPs))):
         if(GietB.iloc[i]["Aftap"] == EersteAftapB):
             n = GietB.iloc[i]["Tp"]
             torpedo = [x for x in Torpedoes if x.number == n][0]
-            torpedo.location = [nodesB[i]]
+            torpedo.location[0] = nodesB[i]
             iB = i
+            
+    remainingTPs = [tp for tp in Torpedoes if tp.location[0] == None]
             
     # next 2 tps under the other casting hole
     nodesA = [86,90]
     TweedeAftapA = GietA.iloc[iA + 1]["Aftap"]
     
-    for i in range(iA+1, iA + 3):
+    for i in range(iA+1, iA + 1 + min(2, len(remainingTPs))):
         if(GietA.iloc[i]["Aftap"] == TweedeAftapA):
             n = GietA.iloc[i]["Tp"]
             torpedo = [x for x in Torpedoes if x.number == n][0]
-            torpedo.location = [nodesA[i - iA - 1]]
+            torpedo.location[0] = nodesA[i - iA - 1]
+            
+    remainingTPs = [tp for tp in Torpedoes if tp.location[0] == None]
             
     nodesB = [56,61]
     TweedeAftapB = GietB.iloc[iB + 1]["Aftap"]
     
-    for i in range(iB+1, iB + 3):
+    for i in range(iB+1, iB + 1 + min(2, len(remainingTPs))):
         if(GietB.iloc[i]["Aftap"] == TweedeAftapB):
             n = GietB.iloc[i]["Tp"]
             torpedo = [x for x in Torpedoes if x.number == n][0]
-            torpedo.location = [nodesB[i - iB - 1]]
+            torpedo.location[0] = nodesB[i - iB - 1]
             
     # put the other TPs on the straight
-    remainingTPs = [tp for tp in Torpedoes if tp.location == [None]]
+    remainingTPs = [tp for tp in Torpedoes if tp.location[0] == None]
     currnode = 171
     
     for tp in remainingTPs:
-        tp.location = [currnode]
+        tp.location[0] = currnode
         currnode = list(G.successors(currnode))[0]
         
     return Torpedoes
 
 def generate_Locolocations(G):
     #Locomotive locations:
-    Locomotives = [Loco.Locomotive("A", 36),
-                   Loco.Locomotive("B", 67),
-                   Loco.Locomotive("C", 21)]
+    Locomotives = [Loco.Locomotive("A", 36)]#,
+#                   Loco.Locomotive("B", 67),
+#                   Loco.Locomotive("C", 21)]
     
     return Locomotives
-
-
-def count_Dir_Changes(path):
-    prev, curr = list(path.edges())[0]
-    direction = G.has_edge(prev, curr)
-    
-    dirChanges = 0
-    
-    for edge in list(path.edges())[1:]:
-        prev, curr = edge
-        if direction:
-            if not G.has_edge(prev,curr):
-                direction = not direction
-                dirChanges += 1
-        else:
-            if not G.has_edge(curr,prev):
-                direction = not direction
-                dirChanges += 1
-    
-    return dirChanges
-
-# SHORTEST PATH DISTANCES
-    
-def calc_Min_Traveltime(G):
-    unDirG = G.to_undirected()
-    
-    MinLengths = {}
-    
-    # GA -> D
-    for start in nGA:
-        for end in nD:
-            sp = nx.shortest_path(unDirG, source = start, target = end)
-            path = nx.path_graph(sp)
-            dirChanges = count_Dir_Changes(path)
-            Minlength = len(sp) + 2 * dirChanges
-            MinLengths[(start,end)] = Minlength
-            
-    # GB -> D
-    for start in nGB:
-        for end in nD:
-            sp = nx.shortest_path(unDirG, source = start, target = end)
-            path = nx.path_graph(sp)
-            dirChanges = count_Dir_Changes(path)
-            Minlength = len(sp) + 2 * dirChanges
-            MinLengths[(start,end)] = Minlength
-            
-    # D -> Ry
-    for start in nD:
-        for end in nRy:
-            sp = nx.shortest_path(unDirG, source = start, target = end)
-            path = nx.path_graph(sp)
-            dirChanges = count_Dir_Changes(path)
-            Minlength = len(sp) + 2 * dirChanges
-            MinLengths[(start,end)] = Minlength
-            
-    # Ry -> GA
-    for start in nRy:
-        for end in nGA:
-            sp = nx.shortest_path(unDirG, source = start, target = end)
-            path = nx.path_graph(sp)
-            dirChanges = count_Dir_Changes(path)
-            Minlength = len(sp) + 2 * dirChanges
-            MinLengths[(start,end)] = Minlength    
-    
-    # Ry -> GB
-    for start in nRy:
-        for end in nGB:
-            sp = nx.shortest_path(unDirG, source = start, target = end)
-            path = nx.path_graph(sp)
-            dirChanges = count_Dir_Changes(path)
-            Minlength = len(sp) + 2 * dirChanges
-            MinLengths[(start,end)] = Minlength
-        
-    return MinLengths
 
 
 def AddTasksToTp(G, Torpedoes, gietLijst):
@@ -461,19 +398,25 @@ def generateTaskList(G, df, Torpedoes):
     
     return TasklistDF.sort_values(["earliestStartTime"])
         
-
+def estimate_DOF(TasklistDF):
+    TasklistDF = TasklistDF[TasklistDF['task'] != "Fill"]
+    earliestST = TasklistDF["earliestStartTime"].to_list()
+    latestST = TasklistDF["latestStartTime"].to_list()
+    
+    TotalDOF = 0
+    for i in range(len(earliestST)):
+        TotalDOF += latestST[i] - earliestST[i]
+    return TotalDOF
     
 #G = import_network()
 #Torpedoes = generate_TPlocations(G)
 #Locomotives = generate_Locolocations(G)
 #
-##plot_Graph2(G, [tp for tp in Torpedoes if tp.location != None], [l for l in Locomotives if l.location != None])
+#plot_Graph2(G, [tp for tp in Torpedoes if tp.location != None], [l for l in Locomotives if l.location != None])
 #plot_Graph2(G, 0, Torpedoes, Locomotives)
-    
-df = importTpData()
-G = import_network()
-Torpedoes = generate_TPlocations(G)
-
-TasklistDF = generateTaskList(G, df, Torpedoes)
-
-
+#    
+#df = importTpData()
+#G = import_network()
+#Torpedoes = generate_TPlocations(G)
+#
+#generateTaskList(G, df, Torpedoes)

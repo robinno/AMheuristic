@@ -7,8 +7,35 @@ Created on Thu Mar 17 15:03:56 2022
 
 import pandas as pd
 
-class Torpedo:
+from PARAMS import H, run_in
+#from Task import Task
+
+
+class Torpedo:      
     
+    def __init__(self, number):   
+        self.number = number
+        self.location = [None for i in range(H + run_in)]
+        self.state = ["Empty"]
+        self.tasks = []
+        
+        self.taskTimeCounter = 0
+        
+    def Reset(self):
+        for task in self.tasks:
+            task.finished = False
+        
+        firstLocation = self.location[0]
+        self.location = [None for i in range(H + run_in)]
+        self.location[0] = firstLocation
+            
+            
+    def TaskFinished(self):
+        self.tasks[self.tasks.index(False)] = True
+        
+    def CurrentTask(self):
+        return self.tasks.index(False)
+        
     # static method to load data
     # STATIC
 #    def loadData():
@@ -32,11 +59,4 @@ class Torpedo:
 #        self.minNetto = row["minNetto"]
 #        self.maxNetto = row["maxNetto"]
 #        self.gemNetto = row["gemNetto"]
-        
-    
-    def __init__(self, number):   
-        self.number = number
-        self.location = [None]
-        self.state = ["Empty"]
-        self.tasks = []
     

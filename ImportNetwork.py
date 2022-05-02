@@ -10,7 +10,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 
 import Visualise as vis
-from PARAMS import nG, nD, nRy, exempt_nodes, nSwitches
+from PARAMS import nSwitches
 
 def calc_EdgeLength(G, node1, node2):
     posList = nx.get_node_attributes(G,'pos')
@@ -109,7 +109,7 @@ def generate_DiGraph(G):
     return DiG
     
 
-def import_network():
+def import_network(undirected = False):
     f = open('tsc.msh', 'r')
     content = f.read()
     content = content.splitlines()
@@ -151,9 +151,11 @@ def import_network():
     
     #load the global params
     load_Switches(G)
-    DiG = generate_DiGraph(G)
     
-    return DiG
+    if not(undirected):
+        G = generate_DiGraph(G)
+    
+    return G
 
 #def remove_intermediary_nodes(G, exempt_nodes):
 #    nodes = list(G.nodes())

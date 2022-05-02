@@ -18,3 +18,5 @@ class Task:
         self.earliestStartTime = None if earliestStartTime == None else int(round(earliestStartTime))
         self.latestStartTime = None if latestStartTime == None else int(round(latestStartTime))
         
+        self.finished = False
+        

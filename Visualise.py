@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import imageio
 from tqdm import tqdm
 
-from PARAMS import nG, nD, nRy, nSwitches, L, T, H
+from PARAMS import nG, nD, nRy, nSwitches, L, T, H, run_in
 
 def generate_color_map_LOCATIONS(G, Locations, UsedTPs = list(range(T)), UsedLocos = list(range(L))):
     locoPos = [Locations["Loco %d pos"%l] for l in UsedLocos]
@@ -25,15 +25,15 @@ def generate_node_sizes_LOCATIONS(G, Locations, UsedTPs = list(range(T)), UsedLo
     return generate_node_sizes(G, locoPos, tp_pos)
 
 
-def generate_color_map_TORPEDOES(G, Torpedoes, Locomotives):
-    locoPos = [l.location for l in Locomotives if not (l.location == None)]
-    tp_pos = [tp.location for tp in Torpedoes if not (tp.location == None)]
+def generate_color_map_TORPEDOES(G, t, Torpedoes, Locomotives):
+    locoPos = [l.location[t] for l in Locomotives if not (l.location[t] == None)]
+    tp_pos = [tp.location[t] for tp in Torpedoes if not (tp.location[t] == None)]
     
     return generate_color_map(G, locoPos, tp_pos)
 
-def generate_node_sizes_TORPEDOES(G, Torpedoes, Locomotives):
-    locoPos = [l.location for l in Locomotives if not (l.location == None)]
-    tp_pos = [tp.location for tp in Torpedoes if not (tp.location == None)]
+def generate_node_sizes_TORPEDOES(G, t, Torpedoes, Locomotives):
+    locoPos = [l.location[t] for l in Locomotives if not (l.location[t] == None)]
+    tp_pos = [tp.location[t] for tp in Torpedoes if not (tp.location[t] == None)]
     
     return generate_node_sizes(G, locoPos, tp_pos)
 
@@ -102,18 +102,20 @@ def plot_Graph(G, figNum, Locations, UsedTPs = list(range(T)), UsedLocos = list(
     else:
         plt.show()
         
-def plot_Graph2(G, t, Torpedoes, Locomotives):
+def plot_Graph2(G, t, Torpedoes, Locomotives, save = False):
     pos=nx.get_node_attributes(G,'pos')
 
-    color_map = generate_color_map_TORPEDOES(G, Torpedoes, Locomotives)
-    node_sizes = generate_node_sizes_TORPEDOES(G, Torpedoes, Locomotives)
+    color_map = generate_color_map_TORPEDOES(G, t, Torpedoes, Locomotives)
+    node_sizes = generate_node_sizes_TORPEDOES(G, t, Torpedoes, Locomotives)
     
     labeldict = {}
 
     for l in Locomotives:
-        labeldict[int(l.location[t])] = "L%s"%l.name
+        if(l.location[t] != None):
+            labeldict[int(l.location[t])] = "L%s"%l.name
     for tp in Torpedoes:
-        labeldict[int(tp.location[t])] = "TP%d"%tp.number
+        if(tp.location[t] != None):
+            labeldict[int(tp.location[t])] = "TP%d"%tp.number
 
 
     nx.draw(G, pos, node_color=color_map, node_size = node_sizes, 
@@ -122,7 +124,11 @@ def plot_Graph2(G, t, Torpedoes, Locomotives):
     figure = plt.gcf()
     figure.set_size_inches(25, 15)
     
-    plt.show()
+    if(save):
+        plt.savefig("plots/{}.png".format(t), dpi=100)    
+        plt.close()
+    else:
+        plt.show()
     
     pass
         
@@ -132,12 +138,28 @@ def generate_GIF(G, Locations):
     print("GIF: Generating Frames")
     
     #generate frames
-    for t in tqdm(range(H), position=0, leave=True):
+    for t in tqdm(range(H + run_in), position=0, leave=True):
         plot_Graph(G, t, Locations[t], save=True)
         
     print("GIF: Importing Frames")
     images = []
-    for t in tqdm(range(H), position=0, leave=True):
+    for t in tqdm(range(H+run_in), position=0, leave=True):
+        images.append(imageio.imread("plots/{}.png".format(t)))
+        
+    print("GIF: constructing gif")
+    imageio.mimsave('GIF/movements.gif', images)
+    
+def generate_GIF2(G, Locomotives, Torpedoes):
+    
+    print("GIF: Generating Frames")
+    
+    #generate frames
+    for t in tqdm(range(H + run_in), position=0, leave=True):
+        plot_Graph2(G, t, Torpedoes, Locomotives, save=True)
+        
+    print("GIF: Importing Frames")
+    images = []
+    for t in tqdm(range(H+run_in), position=0, leave=True):
         images.append(imageio.imread("plots/{}.png".format(t)))
         
     print("GIF: constructing gif")
