@@ -63,7 +63,7 @@ RyC_init_speed_slots = RyC_init_speed * timestep # in tons/timeslot
 RyC_speed_slots = RyC_speed * timestep # in tons/timeslot
 
 # Planning Horizon in seconds
-ph = 3 * 3600
+ph = 6 * 3600
 ri = 0  * 3600
 
 H = round(ph / timestep)

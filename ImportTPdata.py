@@ -271,10 +271,10 @@ def AddTasksToTp(G, Torpedoes, gietLijst):
         endTime -= connect_slots 
         
         # Connect
-        torpedo.tasks.append(Task("Connect", 
-                                  earliestStartTime = startTime, 
-                                  latestStartTime = endTime,
-                                  fixedTime = connect_slots))
+#        torpedo.tasks.append(Task("Connect", 
+#                                  earliestStartTime = startTime, 
+#                                  latestStartTime = endTime,
+#                                  fixedTime = connect_slots))
         startTime += connect_slots
         endTime += connect_slots
         
@@ -286,10 +286,10 @@ def AddTasksToTp(G, Torpedoes, gietLijst):
         endTime += minTimeGAD
         
         # Disconnect
-        torpedo.tasks.append(Task("Disconnect", 
-                                  earliestStartTime = startTime, 
-                                  latestStartTime = endTime, 
-                                  fixedTime = connect_slots))
+#        torpedo.tasks.append(Task("Disconnect", 
+#                                  earliestStartTime = startTime, 
+#                                  latestStartTime = endTime, 
+#                                  fixedTime = connect_slots))
         startTime += connect_slots
         endTime += connect_slots
         
@@ -310,10 +310,10 @@ def AddTasksToTp(G, Torpedoes, gietLijst):
         endTime += blaasDuur 
         
         # Connect
-        torpedo.tasks.append(Task("Connect", 
-                                  earliestStartTime = startTime, 
-                                  latestStartTime = endTime, 
-                                  fixedTime = connect_slots))
+#        torpedo.tasks.append(Task("Connect", 
+#                                  earliestStartTime = startTime, 
+#                                  latestStartTime = endTime, 
+#                                  fixedTime = connect_slots))
         startTime += connect_slots
         endTime += connect_slots 
         
@@ -325,10 +325,10 @@ def AddTasksToTp(G, Torpedoes, gietLijst):
         endTime += minTimeDRy 
         
         # Disconnect
-        torpedo.tasks.append(Task("Disconnect", 
-                                  earliestStartTime = startTime, 
-                                  latestStartTime = endTime, 
-                                  fixedTime = connect_slots))
+#        torpedo.tasks.append(Task("Disconnect", 
+#                                  earliestStartTime = startTime, 
+#                                  latestStartTime = endTime, 
+#                                  fixedTime = connect_slots))
         startTime += connect_slots
         endTime += connect_slots 
         
@@ -341,7 +341,7 @@ def AddTasksToTp(G, Torpedoes, gietLijst):
         endTime += RyC_config_slots 
         
         # pouring at RyC
-        torpedo.tasks.append(Task("Pouring RyC", 
+        torpedo.tasks.append(Task("Pouring", 
                                   earliestStartTime = startTime, 
                                   latestStartTime = endTime, 
                                   fixedTime = pouringTime))
@@ -349,26 +349,25 @@ def AddTasksToTp(G, Torpedoes, gietLijst):
         endTime += pouringTime 
         
         # Connect
-        torpedo.tasks.append(Task("Connect", 
-                                  earliestStartTime = startTime, 
-                                  latestStartTime = endTime, 
-                                  fixedTime = connect_slots))
+#        torpedo.tasks.append(Task("Connect", 
+#                                  earliestStartTime = startTime, 
+#                                  latestStartTime = endTime, 
+#                                  fixedTime = connect_slots))
         startTime += connect_slots
         endTime += connect_slots 
         
         # Move to HOO
         torpedo.tasks.append(Task("Ry -> G", 
                                   earliestStartTime = startTime, 
-                                  latestStartTime = endTime, 
-                                  fixedTime = connect_slots))
+                                  latestStartTime = endTime))
         startTime += minTimeRyG
         endTime += minTimeRyG
         
         # Disconnect
-        torpedo.tasks.append(Task("Disconnect", 
-                                  earliestStartTime = startTime, 
-                                  latestStartTime = endTime, 
-                                  fixedTime = connect_slots))
+#        torpedo.tasks.append(Task("Disconnect", 
+#                                  earliestStartTime = startTime, 
+#                                  latestStartTime = endTime, 
+#                                  fixedTime = connect_slots))
         startTime += connect_slots
         endTime += connect_slots 
         
@@ -376,7 +375,8 @@ def AddTasksToTp(G, Torpedoes, gietLijst):
         torpedo.tasks.append(Task("Fill",
                                   starttime = nextFillTimeStart,
                                   endtime = nextFillTimeEnd,
-                                  fixedTime = nextFillTimeEnd - nextFillTimeStart))
+                                  fixedTime = nextFillTimeEnd - nextFillTimeStart, 
+                                  castingNode = gietLijst["Casting Node"].to_list()[nextuseIndex]))
          
 def generateTaskList(G, df, Torpedoes):
     GietA = df[df["Hoo"] == 'A'].reset_index(drop = True)

@@ -28,8 +28,9 @@ def generate_node_sizes_LOCATIONS(G, Locations, UsedTPs = list(range(T)), UsedLo
 def generate_color_map_TORPEDOES(G, t, Torpedoes, Locomotives):
     locoPos = [l.location[t] for l in Locomotives if not (l.location[t] == None)]
     tp_pos = [tp.location[t] for tp in Torpedoes if not (tp.location[t] == None)]
+    tp_states = [tp.state[t] for tp in Torpedoes if not (tp.location[t] == None)]
     
-    return generate_color_map(G, locoPos, tp_pos)
+    return generate_color_map(G, locoPos, tp_pos, tp_states = tp_states)
 
 def generate_node_sizes_TORPEDOES(G, t, Torpedoes, Locomotives):
     locoPos = [l.location[t] for l in Locomotives if not (l.location[t] == None)]
@@ -37,14 +38,21 @@ def generate_node_sizes_TORPEDOES(G, t, Torpedoes, Locomotives):
     
     return generate_node_sizes(G, locoPos, tp_pos)
 
-def generate_color_map(G, locoPos, tp_pos):
+def generate_color_map(G, locoPos, tp_pos, tp_states = []):
     color_map = []
     
     for node in G:
         if int(node) in locoPos:
             color_map.append('lime')
         elif int(node) in tp_pos:
-            color_map.append('cyan')
+            i = tp_pos.index(int(node))
+            
+            if tp_states[i] == "Full":
+                color_map.append('red')
+            elif tp_states[i] == "Desulpured":
+                color_map.append('orange')
+            else:
+                color_map.append('green')
         elif int(node) in nG:
             color_map.append('red')
         elif int(node) in nD:
@@ -85,7 +93,8 @@ def plot_Graph(G, figNum, Locations, UsedTPs = list(range(T)), UsedLocos = list(
         labeldict[Locations["Loco %d pos"%l]] = "L%d"%l
     for j in UsedTPs:
         labeldict[Locations["TP %d pos"%j]] = "TP%d"%j
-
+    
+    
     if(node_labels):
         nx.draw(G, pos, node_color=color_map, node_size = node_sizes, 
                 font_color = 'w', with_labels = True)
@@ -116,7 +125,13 @@ def plot_Graph2(G, t, Torpedoes, Locomotives, save = False):
     for tp in Torpedoes:
         if(tp.location[t] != None):
             labeldict[int(tp.location[t])] = "TP%d"%tp.number
-
+#            
+#            if tp.state[t] == "Empty":
+#                color_map[int(tp.location[t])] = 'green'
+#            elif tp.state[t] == "Full":
+#                color_map[int(tp.location[t])] = 'red'
+#            elif tp.state[t] == "Desulphured":
+#                color_map[int(tp.location[t])] = 'orange'
 
     nx.draw(G, pos, node_color=color_map, node_size = node_sizes, 
             font_color = 'w', labels = labeldict)
