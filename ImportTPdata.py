@@ -47,7 +47,6 @@ def importTpData():
 # =============================================================================
 #   Clean data
 # =============================================================================
-    
     # throw away columns which we wont need:
     del df["CaD"]
     del df["Debiet_CaD"]
@@ -114,7 +113,6 @@ def importTpData():
 # =============================================================================
 # Add column Tijdstip in time slots:
 # =============================================================================
-    
     timeslots = []
     
     for index, row in df.iterrows():
@@ -130,274 +128,61 @@ def importTpData():
     df = df.sort_values(by=["Timeslot"])
     del df["index"]
     df = df.reset_index(drop = True)
-    return df
-
-def generate_TPlocations(G):
     
-    df = importTpData()
-
-    usedTPs = list(df["Tp"].unique())
-    Torpedoes = [torp.Torpedo(i) for i in usedTPs]
     
-    # first 5 TPs => 1 under each hole, 3 reserves:
-    nodesA = [75,81,127,92,91]
-    GietA = df[df["Hoo"] == 'A']
-    EersteAftapA = GietA.iloc[0]["Aftap"]
+# =============================================================================
+# Add column Tijdstip of next use
+# =============================================================================
+    nextUseOfTP_timeslot = []
     
-    remainingTPs = [tp for tp in Torpedoes if tp.location[0] == None]
-    
-    iA = 0
-    
-    for i in range(min(5, len(remainingTPs))):
-        if(GietA.iloc[i]["Aftap"] == EersteAftapA):
-            n = GietA.iloc[i]["Tp"]
-            torpedo = [x for x in Torpedoes if x.number == n][0]
-            torpedo.location[0] = nodesA[i]
-            iA = i
-            
-    remainingTPs = [tp for tp in Torpedoes if tp.location[0] == None]
+    for index, row in df.iterrows():
+        slot = None
         
-    
-    nodesB = [44,50,105,63,101]
-    GietB = df[df["Hoo"] == 'B']
-    EersteAftapB = GietB.iloc[0]["Aftap"]
-    
-    iB = 0
-    
-    for i in range(min(5, len(remainingTPs))):
-        if(GietB.iloc[i]["Aftap"] == EersteAftapB):
-            n = GietB.iloc[i]["Tp"]
-            torpedo = [x for x in Torpedoes if x.number == n][0]
-            torpedo.location[0] = nodesB[i]
-            iB = i
-            
-    remainingTPs = [tp for tp in Torpedoes if tp.location[0] == None]
-            
-    # next 2 tps under the other casting hole
-    nodesA = [86,90]
-    TweedeAftapA = GietA.iloc[iA + 1]["Aftap"]
-    
-    for i in range(iA+1, iA + 1 + min(2, len(remainingTPs))):
-        if(GietA.iloc[i]["Aftap"] == TweedeAftapA):
-            n = GietA.iloc[i]["Tp"]
-            torpedo = [x for x in Torpedoes if x.number == n][0]
-            torpedo.location[0] = nodesA[i - iA - 1]
-            
-    remainingTPs = [tp for tp in Torpedoes if tp.location[0] == None]
-            
-    nodesB = [56,61]
-    TweedeAftapB = GietB.iloc[iB + 1]["Aftap"]
-    
-    for i in range(iB+1, iB + 1 + min(2, len(remainingTPs))):
-        if(GietB.iloc[i]["Aftap"] == TweedeAftapB):
-            n = GietB.iloc[i]["Tp"]
-            torpedo = [x for x in Torpedoes if x.number == n][0]
-            torpedo.location[0] = nodesB[i - iB - 1]
-            
-    # put the other TPs on the straight
-    remainingTPs = [tp for tp in Torpedoes if tp.location[0] == None]
-    currnode = 171
-    
-    for tp in remainingTPs:
-        tp.location[0] = currnode
-        currnode = list(G.successors(currnode))[0]
-        
-    return Torpedoes
-
-def generate_Locolocations(G):
-    #Locomotive locations:
-    Locomotives = [Loco.Locomotive("A", 36)]#,
-#                   Loco.Locomotive("B", 67),
-#                   Loco.Locomotive("C", 21)]
-    
-    return Locomotives
-
-
-def AddTasksToTp(G, Torpedoes, gietLijst):
-    
-    # =============================================================================
-    #  cycle for each TP:
-    #  move to HOO -> full -> move to DP -> desulphur -> move to RyC -> empty -> move to HOO
-    # =============================================================================
-    
-    # IMPORTANT!! ASSUMES ALL TPs are EMPTY
-    # otherwise: code should be added   
-    
-    gietLijst = gietLijst.reset_index(drop = True)
-    minTravelTimes = calc_Min_Traveltime(G)
-
-    for index, row in gietLijst.iterrows():    
-        # get current line information
+        #get current tp:
         tp = row["Tp"]
-        torpedo = [x for x in Torpedoes if x.number == tp][0]
-        startTime = row["Timeslot"]
         
-        # when is torpedo used next at HOO?
-        tplist = gietLijst["Tp"].to_list()
+        #check if it is used again in the future
+        nextuses = [i for i in range(index + 1, len(df)) if df.iloc[i]["Tp"] == tp]
+        if(len(nextuses) != 0):
+            slot = df["Timeslot"].to_list()[nextuses[0] - 1]
         
-        nextuses = [i for i in range(index + 1, len(gietLijst)) if tplist[i] == tp]
+        nextUseOfTP_timeslot.append(slot)
         
-        if(len(nextuses)==0):
-            continue
+    df["Next Use Timeslot"] = nextUseOfTP_timeslot
+    
+# =============================================================================
+# Add column for casting time
+# =============================================================================
+    castingTimes = []
+    
+    for index, row in df.iterrows():
+        beforeDF = df[(df['Timeslot'] < row['Timeslot']) & (df['Hoo'] == row['Hoo'])]
         
-        nextuseIndex = nextuses[0]
-        endTime = gietLijst["Timeslot"].to_list()[nextuseIndex - 1]
-        nextCastingNode =  gietLijst["Casting Node"].to_list()[nextuseIndex]
+        if(len(beforeDF) > 0):
+            start = beforeDF.iloc[-1]['Timeslot']
+            castingTimes.append(row['Timeslot'] - start)
+        else:
+            castingTimes.append(None)
         
-        nextFillTimeStart = gietLijst["Timeslot"].to_list()[nextuseIndex - 1]
-        nextFillTimeEnd = gietLijst["Timeslot"].to_list()[nextuseIndex]
-        
-        # timing information
-        node = row["Casting Node"]
-        minTimeGAD = min(minTravelTimes[(node, i)] for i in nD)
-        
-        blaasDuur = row["Blaasduur"]
-        
-        minTimeDRy = min(minTravelTimes[(i,j)] for i in nD for j in nRy)
-        
+    df["Casting Time"] = castingTimes
+    
+# =============================================================================
+# Add column for pouring time
+# =============================================================================
+    pouringTimes = []
+    
+    for index, row in df.iterrows():
         mry = row["m_ry"] / 1000
         pouringTime = min(30, mry) / RyC_init_speed_slots # first 30 tons
         pouringTime += max(mry - 30, 0) / RyC_speed_slots # rest
         pouringTime = round(pouringTime)
         
-        minTimeRyG = min(minTravelTimes[(i, nextCastingNode)] for i in nRy)
-        
-        # set endTime correctly:
-        endTime -= connect_slots + minTimeGAD 
-        endTime -= connect_slots + D_config_slots + blaasDuur
-        endTime -= connect_slots + minTimeDRy 
-        endTime -= connect_slots + RyC_config_slots + pouringTime 
-        endTime -= connect_slots + minTimeRyG
-        endTime -= connect_slots 
-        
-        # Connect
-#        torpedo.tasks.append(Task("Connect", 
-#                                  earliestStartTime = startTime, 
-#                                  latestStartTime = endTime,
-#                                  fixedTime = connect_slots))
-        startTime += connect_slots
-        endTime += connect_slots
-        
-        # move to Desulphurisation plant
-        torpedo.tasks.append(Task("G -> D", 
-                                  earliestStartTime = startTime,
-                                  latestStartTime = endTime))
-        startTime += minTimeGAD
-        endTime += minTimeGAD
-        
-        # Disconnect
-#        torpedo.tasks.append(Task("Disconnect", 
-#                                  earliestStartTime = startTime, 
-#                                  latestStartTime = endTime, 
-#                                  fixedTime = connect_slots))
-        startTime += connect_slots
-        endTime += connect_slots
-        
-        # Add the desulphurisation configuration time
-        torpedo.tasks.append(Task("Configure Desulphur", 
-                                  earliestStartTime = startTime,
-                                  latestStartTime = endTime, 
-                                  fixedTime = D_config_slots))
-        startTime += D_config_slots
-        endTime += D_config_slots
-        
-        # Desulphur
-        torpedo.tasks.append(Task("Desulphur", 
-                                  earliestStartTime = startTime, 
-                                  latestStartTime = endTime, 
-                                  fixedTime = blaasDuur))
-        startTime += blaasDuur
-        endTime += blaasDuur 
-        
-        # Connect
-#        torpedo.tasks.append(Task("Connect", 
-#                                  earliestStartTime = startTime, 
-#                                  latestStartTime = endTime, 
-#                                  fixedTime = connect_slots))
-        startTime += connect_slots
-        endTime += connect_slots 
-        
-        # move to RyC
-        torpedo.tasks.append(Task("D -> Ry", 
-                                  earliestStartTime = startTime,
-                                  latestStartTime = endTime))
-        startTime += minTimeDRy
-        endTime += minTimeDRy 
-        
-        # Disconnect
-#        torpedo.tasks.append(Task("Disconnect", 
-#                                  earliestStartTime = startTime, 
-#                                  latestStartTime = endTime, 
-#                                  fixedTime = connect_slots))
-        startTime += connect_slots
-        endTime += connect_slots 
-        
-        # configure casting
-        torpedo.tasks.append(Task("Configure RyC", 
-                                  earliestStartTime = startTime, 
-                                  latestStartTime = endTime, 
-                                  fixedTime = RyC_config_slots))
-        startTime += RyC_config_slots
-        endTime += RyC_config_slots 
-        
-        # pouring at RyC
-        torpedo.tasks.append(Task("Pouring", 
-                                  earliestStartTime = startTime, 
-                                  latestStartTime = endTime, 
-                                  fixedTime = pouringTime))
-        startTime += pouringTime
-        endTime += pouringTime 
-        
-        # Connect
-#        torpedo.tasks.append(Task("Connect", 
-#                                  earliestStartTime = startTime, 
-#                                  latestStartTime = endTime, 
-#                                  fixedTime = connect_slots))
-        startTime += connect_slots
-        endTime += connect_slots 
-        
-        # Move to HOO
-        torpedo.tasks.append(Task("Ry -> G", 
-                                  earliestStartTime = startTime, 
-                                  latestStartTime = endTime))
-        startTime += minTimeRyG
-        endTime += minTimeRyG
-        
-        # Disconnect
-#        torpedo.tasks.append(Task("Disconnect", 
-#                                  earliestStartTime = startTime, 
-#                                  latestStartTime = endTime, 
-#                                  fixedTime = connect_slots))
-        startTime += connect_slots
-        endTime += connect_slots 
-        
-        # Fill at HOO
-        torpedo.tasks.append(Task("Fill",
-                                  starttime = nextFillTimeStart,
-                                  endtime = nextFillTimeEnd,
-                                  fixedTime = nextFillTimeEnd - nextFillTimeStart, 
-                                  castingNode = gietLijst["Casting Node"].to_list()[nextuseIndex]))
-         
-def generateTaskList(G, df, Torpedoes):
-    GietA = df[df["Hoo"] == 'A'].reset_index(drop = True)
-    GietB = df[df["Hoo"] == 'B'].reset_index(drop = True)
+        pouringTimes.append(pouringTime)
     
-    AddTasksToTp(G, Torpedoes, GietA)
-    AddTasksToTp(G, Torpedoes, GietB)
+    df["Pouring Time"] = pouringTimes
     
-    # full task list:
-    Tasklist = []
-    for tp in Torpedoes:
-        for task in tp.tasks:
-            Tasklist.append({"tp": tp.number, "task": task.name, "fixedTime": task.fixedTime, 
-                             "starttime": task.starttime,"endtime": task.endtime, 
-                             "earliestStartTime": task.earliestStartTime, 
-                             "latestStartTime": task.latestStartTime})
-    
-    TasklistDF = pd.DataFrame(Tasklist)
-    
-    return TasklistDF.sort_values(["earliestStartTime"])
-        
+    return df
+
 def estimate_DOF(TasklistDF):
     TasklistDF = TasklistDF[TasklistDF['task'] != "Fill"]
     earliestST = TasklistDF["earliestStartTime"].to_list()
@@ -407,16 +192,107 @@ def estimate_DOF(TasklistDF):
     for i in range(len(earliestST)):
         TotalDOF += latestST[i] - earliestST[i]
     return TotalDOF
+
+def generateTaskList(G, df, Torpedoes):    
     
-#G = import_network()
-#Torpedoes = generate_TPlocations(G)
-#Locomotives = generate_Locolocations(G)
-#
-#plot_Graph2(G, [tp for tp in Torpedoes if tp.location != None], [l for l in Locomotives if l.location != None])
-#plot_Graph2(G, 0, Torpedoes, Locomotives)
-#    
-#df = importTpData()
-#G = import_network()
-#Torpedoes = generate_TPlocations(G)
-#
-#generateTaskList(G, df, Torpedoes)
+    # make list of tasks
+    Tasks = []
+    
+    for index, row in df.iterrows():
+        # fill in the one I know directly: Casting Time!
+        Tasks.append({"name": "-> H",
+                      "tp": row["Tp"]
+                      })
+        
+        Tasks.append({"name": "Fill",
+                      "tp": row["Tp"],
+                      "EST": 0 if np.isnan(row["Casting Time"]) else (row["Timeslot"] - row["Casting Time"]),
+                      "EFT": row["Timeslot"],
+                      "LST": 0 if np.isnan(row["Casting Time"]) else (row["Timeslot"] - row["Casting Time"]),
+                      "LFT": row["Timeslot"],
+                      "FixedTime": row["Timeslot"] if np.isnan(row["Casting Time"]) else row["Casting Time"],
+                      "CastingNode": row["Casting Node"]
+                      })
+        
+        Tasks.append({"name": "-> D",
+                      "tp": row["Tp"]
+                      })
+        
+        Tasks.append({"name": "Configure D",
+                      "tp": row["Tp"],
+                      "FixedTime": D_config_slots
+                      })
+        
+        Tasks.append({"name": "Desulphur",
+                      "tp": row["Tp"],
+                      "FixedTime": row["Blaasduur"]
+                      })
+        
+        Tasks.append({"name": "-> Ry", 
+                      "tp": row["Tp"]
+                      })
+        
+        Tasks.append({"name": "Configure Ry", 
+                      "tp": row["Tp"],
+                      "FixedTime": RyC_config_slots
+                      })
+        
+        Tasks.append({"name": "Pouring", 
+                      "tp": row["Tp"],
+                      "FixedTime": row["Pouring Time"]
+                      })
+        
+    Tasks = sorted(Tasks, key = lambda i: i['tp'])
+    usedTPs = sorted(list(df.Tp.unique()))
+        
+    # =============================================================================
+    # Cascading Times
+    # =============================================================================
+    AllTasks = []
+    
+    for tp in usedTPs:
+        currentTPTasks = [i for i in Tasks if i['tp'] == tp]    
+        
+        # set first EST and EFT => SHOULD BE MOVE TO HOO
+        currentTPTasks[0]["EST"] = 0
+        currentTPTasks[0]["EFT"] = 0
+        
+        # forward Cascade
+        for i in range(1, len(currentTPTasks)):
+            if "EST" not in currentTPTasks[i]:
+                currentTPTasks[i]["EST"] = currentTPTasks[i-1]["EFT"]
+                
+                if "FixedTime" not in currentTPTasks[i]:
+                    currentTPTasks[i]["EFT"] = currentTPTasks[i]["EST"]
+                else:
+                    currentTPTasks[i]["EFT"] = currentTPTasks[i]["EST"] + currentTPTasks[i]["FixedTime"]
+                
+        
+        # backward Cascade
+        for i in range(len(currentTPTasks) - 1, 0, -1):
+            if "LFT" not in currentTPTasks[i-1] and "LST" in currentTPTasks[i]: # Not none
+                currentTPTasks[i-1]["LFT"] = currentTPTasks[i]["LST"]
+                
+                if "FixedTime" not in currentTPTasks[i-1]:
+                    currentTPTasks[i-1]["LST"] = currentTPTasks[i-1]["LFT"]
+                else:
+                    currentTPTasks[i-1]["LST"] = currentTPTasks[i-1]["LFT"] - currentTPTasks[i-1]["FixedTime"]
+        
+        # =============================================================================
+        # add tasks to Torpedo
+        # =============================================================================
+        torpedo = [i for i in Torpedoes if i.number == tp][0]
+        
+        for row in currentTPTasks:
+            torpedo.tasks.append(Task(name          = None if "name" not in row else row["name"], 
+                                      fixedTime     = None if "FixedTime" not in row else row["FixedTime"],
+                                      EST           = None if "EST" not in row else row["EST"], 
+                                      LST           = None if "LST" not in row else row["LST"], 
+                                      EFT           = None if "EFT" not in row else row["EFT"], 
+                                      LFT           = None if "LFT" not in row else row["LFT"],
+                                      castingNode   = None if "Casting Node" not in row else row["Casting Node"]
+                                      ))
+        
+        AllTasks += currentTPTasks
+
+    return pd.DataFrame(AllTasks)

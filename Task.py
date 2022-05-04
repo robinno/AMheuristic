@@ -9,17 +9,17 @@ from PARAMS import H, run_in
 
 class Task:
     def __init__(self, name, fixedTime = None,
-                 starttime = None, endtime = None, 
-                 earliestStartTime = 0, latestStartTime = H+run_in-1,
+                 EST = 0, LST = H+run_in-1,
+                 EFT = 0, LFT = H+run_in-1,
                  castingNode = None):
         self.name = name
         self.fixedTime = None if fixedTime == None else int(round(fixedTime))
-        self.starttime = None if starttime == None else int(round(starttime))
-        self.endtime = None if endtime == None else int(round(endtime))
-        self.earliestStartTime = None if earliestStartTime == None else int(round(earliestStartTime))
-        self.latestStartTime = None if latestStartTime == None else int(round(latestStartTime))
+        
+        self.EST = None if EST == None else int(round(EST))
+        self.LST = None if LST == None else int(round(LST))
+        self.EFT = None if EFT == None else int(round(EFT))
+        self.LFT = None if LFT == None else int(round(LFT))
         
         self.castingNode = castingNode
-        
         self.finished = False
         

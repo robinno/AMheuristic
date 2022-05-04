@@ -19,6 +19,8 @@ class Torpedo:
         self.state = ["Empty"]
         self.tasks = []
         
+        self.Locomotive = None
+        
         self.movementREQ = False
         self.taskTimeCounter = 0
         
@@ -49,6 +51,8 @@ class Torpedo:
         return None if len(todo) == 0 else todo[0]
     
     def update(self, t):
+        
+        # task updating
         if self.taskTimeCounter > 0:
             self.taskTimeCounter -= 1
             if self.taskTimeCounter == 0:
@@ -79,7 +83,12 @@ class Torpedo:
                     print("Not at right location!")
             else:
                 print("Something went wrong with routing!")
-            
+                
+        # location updating
+        if self.Locomotive == None:
+            self.location[t] = self.location[t-1]
+        else:
+            pass # TODO            
         
         
     # static method to load data

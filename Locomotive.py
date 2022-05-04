@@ -35,7 +35,10 @@ class Locomotive:
         self.back_connected = [None] * Allowed_Connections
         
         
-    def update(self, G, DiG, t):        
+    def update(self, G, DiG, t, Torpedoes):     
+        
+#        if len(self.plan) == 0:
+#            nextTask = naiveSelection()
         
         if len(self.route) == 0 and len(self.plan) > 0:
             print("generating route")
@@ -44,5 +47,12 @@ class Locomotive:
         
         if len(self.route) > 0:
             self.location[t-1] = self.route.pop(0)
+            
+            
+    #static method: select next task in naive way        
+    def naiveSelection(Torpedoes):
+        # get current task for each tp which requests movement
+        tasks = [tp.CurrentTask() for tp in Torpedoes if tp.movementREQ]
+        print(tasks)
         
             

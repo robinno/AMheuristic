@@ -10,7 +10,6 @@ import math
 
 from PARAMS import nGA1, nGA2, nGA, nGB1, nGB2, nGB, nG, nD, nRy, nSwitches
 from ImportNetwork import import_network, calc_angle
-import Locomotive as Loco
 
 def count_Dir_Changes(G, path):
     prev, curr = list(path.edges())[0]
