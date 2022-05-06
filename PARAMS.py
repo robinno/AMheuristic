@@ -9,7 +9,7 @@ Created on Wed Mar 30 11:55:00 2022
 
 #Casting holes:
 nGA1 = [75,81]
-nGA2 = [90,86]
+nGA2 = [86,90]
 nGA = nGA1+nGA2
 
 nGB1 = [44,50]
@@ -24,10 +24,14 @@ nFA1 = [126]
 nWA2 = [125, 124, 82]
 nFA2 = [130]
 
+nWA = nWA1+nFA1+nWA2+nFA2
+
 nWB1 = [105,63,101]
 nFB1 = [104]
 nWB2 = [103, 51, 99]
 nFB2 = [102]
+
+nWB = nWB1+nFB1+nWB2+nFB2
 
 nWo = [39, 168, 167, 166, 165, 164]
 
@@ -63,7 +67,7 @@ RyC_init_speed_slots = RyC_init_speed * timestep # in tons/timeslot
 RyC_speed_slots = RyC_speed * timestep # in tons/timeslot
 
 # Planning Horizon in seconds
-ph = 12 * 3600
+ph = 3 * 3600
 ri = 0  * 3600
 
 H = round(ph / timestep)

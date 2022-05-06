@@ -20,8 +20,6 @@ class Torpedo:
         self.tasks = []
         
         self.Locomotive = None
-        
-        self.movementREQ = False
         self.taskTimeCounter = 0
         
     def Reset(self):
@@ -36,14 +34,15 @@ class Torpedo:
     def TaskFinished(self):
         task = self.CurrentTask()
         
-        if task.Name == "Fill":
+        print("TP {}: finished task {}".format(self.number, task.name))
+        
+        if task.name == "Fill":
             self.state.append("Full")
-        elif task.Name == "Desulphur":
+        elif task.name == "Desulphur":
             self.state.append("Desulphured")
-        elif task.Name == "Pouring":
+        elif task.name == "Pouring":
             self.state.append("Empty")
         
-        self.movementREQ = False
         task.finished = True
         
     def CurrentTask(self):
@@ -64,31 +63,40 @@ class Torpedo:
                 return
             
             if "->" in task.name: # movement request
+                # check if at right location:
+                if task.name == "-> H":
+                    if self.location[t-1] == task.castingNode:
+                        self.TaskFinished()
+                elif task.name == "-> D":
+                    if self.location[t-1] in nD:
+                        self.TaskFinished()
+                elif task.name == "-> Ry":
+                    if self.location[t-1] in nRy:
+                        self.TaskFinished()
+                        
                 self.movementREQ = True
                 
-            elif task.name == "Configure Desulphur" or task.name == "Desulphur":
+            elif task.name == "Configure D" or task.name == "Desulphur":
                 if self.location[t-1] in nD:
                     self.taskTimeCounter = task.fixedTime
                 else:
                     print("Not at right location!")
-            elif task.name == "Configure RyC" or task.name == "Pouring":
+            elif task.name == "Configure Ry" or task.name == "Pouring":
                 if self.location[t-1] in nRy:
                     self.taskTimeCounter = task.fixedTime
                 else:
                     print("Not at right location!")
-            elif task.name == "Fill" and t == task.starttime:
+            elif task.name == "Fill" and t == task.EST:
                 if self.location[t-1] == task.castingNode:
                     self.taskTimeCounter = task.fixedTime
                 else:
                     print("Not at right location!")
-            else:
-                print("Something went wrong with routing!")
                 
         # location updating
         if self.Locomotive == None:
             self.location[t] = self.location[t-1]
         else:
-            pass # TODO            
+            pass # Handle in Locomotive!            
         
         
     # static method to load data

@@ -74,6 +74,25 @@ def importTpData():
     df["Blaasduur"] = (df["Blaasduur"] / timestep).apply(np.ceil)
     
 # =============================================================================
+# Add column Tijdstip in time slots:
+# =============================================================================
+    timeslots = []
+    
+    for index, row in df.iterrows():
+        time_diff = row['Tijdstip'] - Start
+        tsecs = time_diff.total_seconds()
+        slot = math.floor(tsecs / timestep)
+        
+        timeslots.append(slot)
+
+    df["Timeslot"] = timeslots
+    
+    
+    df = df.sort_values(by=["Timeslot"])
+#    del df["index"]
+    df = df.reset_index(drop = True)
+    
+# =============================================================================
 #   add a column on which node is casted:
 # =============================================================================
     Cnodes = []
@@ -94,7 +113,7 @@ def importTpData():
                 A_fh = True
                 A_fc = not(A_fc)               
             
-            Cnodes.append(nGA[2*(1-A_fh) + (1-A_fc)])
+            Cnodes.append(nGA[(1-A_fh) + 2*(1-A_fc)])
             
             A_fh = not(A_fh)
             
@@ -104,30 +123,11 @@ def importTpData():
                 B_fh = True
                 B_fc = not(B_fc)               
             
-            Cnodes.append(nGB[2*(1-B_fh) + (1-B_fc)])
+            Cnodes.append(nGB[(1-B_fh) + 2*(1-B_fc)])
             
             B_fh = not(B_fh)
             
     df["Casting Node"] = Cnodes    
-    
-# =============================================================================
-# Add column Tijdstip in time slots:
-# =============================================================================
-    timeslots = []
-    
-    for index, row in df.iterrows():
-        time_diff = row['Tijdstip'] - Start
-        tsecs = time_diff.total_seconds()
-        slot = math.floor(tsecs / timestep)
-        
-        timeslots.append(slot)
-
-    df["Timeslot"] = timeslots
-    
-    
-    df = df.sort_values(by=["Timeslot"])
-    del df["index"]
-    df = df.reset_index(drop = True)
     
     
 # =============================================================================
@@ -193,7 +193,7 @@ def estimate_DOF(TasklistDF):
         TotalDOF += latestST[i] - earliestST[i]
     return TotalDOF
 
-def generateTaskList(G, df, Torpedoes):    
+def generateTaskList(G, df):    
     
     # make list of tasks
     Tasks = []
@@ -201,7 +201,8 @@ def generateTaskList(G, df, Torpedoes):
     for index, row in df.iterrows():
         # fill in the one I know directly: Casting Time!
         Tasks.append({"name": "-> H",
-                      "tp": row["Tp"]
+                      "tp": row["Tp"],
+                      "CastingNode": row["Casting Node"]
                       })
         
         Tasks.append({"name": "Fill",
@@ -277,21 +278,6 @@ def generateTaskList(G, df, Torpedoes):
                     currentTPTasks[i-1]["LST"] = currentTPTasks[i-1]["LFT"]
                 else:
                     currentTPTasks[i-1]["LST"] = currentTPTasks[i-1]["LFT"] - currentTPTasks[i-1]["FixedTime"]
-        
-        # =============================================================================
-        # add tasks to Torpedo
-        # =============================================================================
-        torpedo = [i for i in Torpedoes if i.number == tp][0]
-        
-        for row in currentTPTasks:
-            torpedo.tasks.append(Task(name          = None if "name" not in row else row["name"], 
-                                      fixedTime     = None if "FixedTime" not in row else row["FixedTime"],
-                                      EST           = None if "EST" not in row else row["EST"], 
-                                      LST           = None if "LST" not in row else row["LST"], 
-                                      EFT           = None if "EFT" not in row else row["EFT"], 
-                                      LFT           = None if "LFT" not in row else row["LFT"],
-                                      castingNode   = None if "Casting Node" not in row else row["Casting Node"]
-                                      ))
         
         AllTasks += currentTPTasks
 

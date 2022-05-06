@@ -5,17 +5,50 @@ Created on Tue May  3 20:51:25 2022
 @author: robin
 """
 
-from ImportTPdata import importTpData
+import numpy as np
+
+from ImportTPdata import importTpData, generateTaskList
 import Torpedo as torp
 import Locomotive as Loco
+from Task import Task
+
+from Visualise import plot_Graph2
+from ImportNetwork import import_network
 
 
-def generate_TPlocations(G):
-    
-    df = importTpData()
-
-    usedTPs = list(df["Tp"].unique())
+def generate_TPs(Tasks):
+    usedTPs = list(Tasks["tp"].unique())
     Torpedoes = [torp.Torpedo(i) for i in usedTPs]
+    
+    Tasks = Tasks.replace({np.nan: None})
+    
+    for torpedo in Torpedoes:
+        # add tasks to Torpedo
+        currentTPTasks = [row for index, row in Tasks.iterrows() if row["tp"] == torpedo.number]  
+
+        for row in currentTPTasks:
+            torpedo.tasks.append(Task(name          = None if "name" not in row else row["name"],
+                                      tp            = torpedo.number,
+                                      fixedTime     = None if "FixedTime" not in row else row["FixedTime"],
+                                      EST           = None if "EST" not in row else row["EST"], 
+                                      LST           = None if "LST" not in row else row["LST"], 
+                                      EFT           = None if "EFT" not in row else row["EFT"], 
+                                      LFT           = None if "LFT" not in row else row["LFT"],
+                                      castingNode   = None if "CastingNode" not in row else row["CastingNode"]
+                                      ))
+    
+    return Torpedoes
+
+def generate_Locos(DiG):
+    #Locomotive locations:
+    Locomotives = [Loco.Locomotive("A", 36)]#,
+#                   Loco.Locomotive("B", 67),
+#                   Loco.Locomotive("C", 21)]
+    
+    return Locomotives
+    
+    
+def set_TPlocation(G, df, Torpedoes):
     
     # first 5 TPs => 1 under each hole, 3 reserves:
     nodesA = [75,81,127,92,91]
@@ -82,10 +115,13 @@ def generate_TPlocations(G):
         
     return Torpedoes
 
-def generate_Locolocations(G):
-    #Locomotive locations:
-    Locomotives = [Loco.Locomotive("A", 36)]#,
-#                   Loco.Locomotive("B", 67),
-#                   Loco.Locomotive("C", 21)]
-    
-    return Locomotives
+# testing:
+#DiG = import_network()
+#G = DiG.to_undirected()
+#
+#df = importTpData()
+#Tasks = generateTaskList(G, df)
+#
+#Torpedoes = generate_TPs(Tasks)
+#set_TPlocation(DiG, df, Torpedoes)
+#Locomotives = generate_Locos(DiG)

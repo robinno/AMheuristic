@@ -10,7 +10,7 @@ import pandas as pd
 from PARAMS import H, run_in
 
 from ImportNetwork import import_network
-from GenerateSnapshot import generate_TPlocations, generate_Locolocations 
+from GenerateSnapshot import generate_TPs, generate_Locos, set_TPlocation
 from ImportTPdata import generateTaskList, importTpData
 from Visualise import generate_GIF2
 
@@ -18,14 +18,28 @@ from Visualise import generate_GIF2
 DiG = import_network()
 G = DiG.to_undirected()
 
-Torpedoes = generate_TPlocations(DiG)
-Locomotives = generate_Locolocations(DiG)
-
 df = importTpData()
-Tasks = generateTaskList(G, df, Torpedoes)
+Tasks = generateTaskList(G, df)
 
+Torpedoes = generate_TPs(Tasks)
+set_TPlocation(DiG, df, Torpedoes)
+Locomotives = generate_Locos(DiG)
+
+#interpretation
 info = []
-for t in range(1, H + run_in):
+row = {}
+row["t"] = 0
+for l in Locomotives:
+    row["loco {} location".format(l.name)] = l.location[0]
+
+for tp in Torpedoes:
+    row["Tp {} location".format(tp.number)] = tp.location[0]
+    row["Tp {} state".format(tp.number)] = tp.state[-1]
+        
+info.append(row)
+
+
+for t in range(1, 100):
     row = {}
     row["t"] = t
     

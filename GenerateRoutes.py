@@ -83,8 +83,14 @@ def calc_Min_Traveltime(G):
         
     return MinLengths
 
-def generate_route(G, DiG, l, start, finish):
-    path = list(nx.shortest_path(G, source = start, target = finish))
+def generate_route(G, DiG, start, finish):
+    try:
+        path = list(nx.shortest_path(G, source = start, target = finish))
+    except:
+        print(start, finish)
+        nx.draw(G, nx.get_node_attributes(G,'pos'), with_labels = True)
+        raise Exception("Check eens je grafieken?")
+        return []
     
     # change path: no sharp angles
     for i in range(1, len(path) - 1):
@@ -140,3 +146,13 @@ def generate_route(G, DiG, l, start, finish):
                     i += 1
             
     return path
+
+def generate_route_RM_Unreachables(G, DiG, start, finish, t, Torpedoes):
+    H = G.copy()
+    DiH = DiG.copy()
+    
+    for tp in Torpedoes:
+        H.remove_node(tp.location[t])
+        DiH.remove_node(tp.location[t])
+            
+    return generate_route(H, DiH, start, finish)
