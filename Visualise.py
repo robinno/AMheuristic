@@ -140,7 +140,7 @@ def plot_Graph2(G, t, Torpedoes, Locomotives, save = False):
     figure.set_size_inches(25, 15)
     
     if(save):
-        plt.savefig("plots/{}.png".format(t), dpi=100)    
+        plt.savefig("plots/{}.png".format(t), dpi=20)    
         plt.close()
     else:
         plt.show()

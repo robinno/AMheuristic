@@ -16,8 +16,11 @@ class Torpedo:
     def __init__(self, number):   
         self.number = number
         self.location = [None for i in range(H + run_in)]
-        self.state = ["Empty"]
+        self.state = [None for i in range(H + run_in)]
+        self.state[0] = "Empty"
         self.tasks = []
+        
+        self.plan = []
         
         self.Locomotive = None
         self.taskTimeCounter = 0
@@ -31,17 +34,17 @@ class Torpedo:
         self.location[0] = firstLocation
             
             
-    def TaskFinished(self):
+    def TaskFinished(self, t):
         task = self.CurrentTask()
         
-        print("TP {}: finished task {}".format(self.number, task.name))
+        print("TP {}: finished task {} at time {}".format(self.number, task.name, t))
         
         if task.name == "Fill":
-            self.state.append("Full")
+            self.state[t] = "Full"
         elif task.name == "Desulphur":
-            self.state.append("Desulphured")
+            self.state[t] = "Desulphured"
         elif task.name == "Pouring":
-            self.state.append("Empty")
+            self.state[t] = "Empty"
         
         task.finished = True
         
@@ -50,31 +53,36 @@ class Torpedo:
         return None if len(todo) == 0 else todo[0]
     
     def update(self, t):
+        self.state[t] = self.state[t-1]
+        self.location[t] = self.location[t-1]
+        
+        # location updating
+        if len(self.plan) > 0:
+            self.location[t] = self.plan.pop(0)
+            print("Popped location", self.location[t])
         
         # task updating
         if self.taskTimeCounter > 0:
             self.taskTimeCounter -= 1
             if self.taskTimeCounter == 0:
-                self.TaskFinished()
+                self.TaskFinished(t)
         else:
             task = self.CurrentTask()
             
             if task == None:
                 return
             
-            if "->" in task.name: # movement request
+            if "->" in task.name:
                 # check if at right location:
                 if task.name == "-> H":
                     if self.location[t-1] == task.castingNode:
-                        self.TaskFinished()
+                        self.TaskFinished(t)
                 elif task.name == "-> D":
                     if self.location[t-1] in nD:
-                        self.TaskFinished()
+                        self.TaskFinished(t)
                 elif task.name == "-> Ry":
                     if self.location[t-1] in nRy:
-                        self.TaskFinished()
-                        
-                self.movementREQ = True
+                        self.TaskFinished(t)
                 
             elif task.name == "Configure D" or task.name == "Desulphur":
                 if self.location[t-1] in nD:
@@ -91,12 +99,6 @@ class Torpedo:
                     self.taskTimeCounter = task.fixedTime
                 else:
                     print("Not at right location!")
-                
-        # location updating
-        if self.Locomotive == None:
-            self.location[t] = self.location[t-1]
-        else:
-            pass # Handle in Locomotive!            
         
         
     # static method to load data
