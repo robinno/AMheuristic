@@ -23,4 +23,5 @@ class Task:
         
         self.castingNode = castingNode
         self.finished = False
+        self.finishTime = None
         

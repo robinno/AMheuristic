@@ -111,7 +111,7 @@ def plot_Graph(G, figNum, Locations, UsedTPs = list(range(T)), UsedLocos = list(
     else:
         plt.show()
         
-def plot_Graph2(G, t, Torpedoes, Locomotives, save = False):
+def plot_Graph2(G, t, Torpedoes, Locomotives, save = False, bigSize = True, dpi = 20, saveLoc = "plots/"):
     pos=nx.get_node_attributes(G,'pos')
 
     color_map = generate_color_map_TORPEDOES(G, t, Torpedoes, Locomotives)
@@ -136,16 +136,19 @@ def plot_Graph2(G, t, Torpedoes, Locomotives, save = False):
     nx.draw(G, pos, node_color=color_map, node_size = node_sizes, 
             font_color = 'w', labels = labeldict)
     
+    
     figure = plt.gcf()
-    figure.set_size_inches(25, 15)
+    
+    if bigSize:
+        figure.set_size_inches(25, 15)
+    else:
+        figure.set_size_inches(15, 9)
     
     if(save):
-        plt.savefig("plots/{}.png".format(t), dpi=20)    
+        plt.savefig("{}{}.png".format(saveLoc, t), dpi=dpi)    
         plt.close()
     else:
         plt.show()
-    
-    pass
         
 
 def generate_GIF(G, Locations):

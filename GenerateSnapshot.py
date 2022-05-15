@@ -15,6 +15,8 @@ from Task import Task
 from Visualise import plot_Graph2
 from ImportNetwork import import_network
 
+from PARAMS import nWo
+
 
 def generate_TPs(Tasks):
     usedTPs = list(Tasks["tp"].unique())
@@ -107,11 +109,13 @@ def set_TPlocation(G, df, Torpedoes):
             
     # put the other TPs on the straight
     remainingTPs = [tp for tp in Torpedoes if tp.location[0] == None]
-    currnode = 171
+    remainingTPs.reverse()
     
-    for tp in remainingTPs:
-        tp.location[0] = currnode
-        currnode = list(G.successors(currnode))[0]
+    for i in range(len(nWo)):
+        if i >= len(remainingTPs):
+            break
+        
+        remainingTPs[i].location[0] = nWo[len(nWo) - i - 1]
         
     return Torpedoes
 

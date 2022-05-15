@@ -7,6 +7,9 @@ Created on Sun May  1 22:16:49 2022
 
 import pandas as pd
 import traceback
+from tqdm import tqdm
+import os
+import glob
 
 from PARAMS import H, run_in
 
@@ -15,6 +18,14 @@ from GenerateSnapshot import generate_TPs, generate_Locos, set_TPlocation
 from ImportTPdata import generateTaskList, importTpData
 from Visualise import generate_GIF2
 
+# clear plot folders:
+files = glob.glob('keyMoments/*.png')
+for f in files:
+    os.remove(f)
+    
+files = glob.glob('plots/*.png')
+for f in files:
+    os.remove(f)
 
 DiG = import_network()
 G = DiG.to_undirected()
@@ -40,7 +51,8 @@ for tp in Torpedoes:
 info.append(row)
 
 try:
-    for t in range(1, H + run_in):
+    print("Simulating")
+    for t in range(1, H+run_in):#tqdm(range(1, H + run_in), position=0, leave=True):
         row = {}
         row["t"] = t
         
@@ -49,9 +61,7 @@ try:
         for l in Locomotives: 
             l.update(G, DiG, t, Torpedoes)
             
-            
         """ interpretation """
-        
         for l in Locomotives:        
             row["loco {} location".format(l.name)] = l.location[t]
             
@@ -65,7 +75,19 @@ except Exception:
     traceback.print_exc()
         
 finally:
+    tasks = []
+    for tp in Torpedoes:
+        for task in tp.tasks:
+            tasks.append({"name": task.name, 
+                          "tp": task.tp, 
+                          "Finished": task.finished,
+                          "Finish Time": task.finishTime})
+    
+    
+    TasksDF = pd.DataFrame(tasks)
+    
     infoDF = pd.DataFrame(info)
-    generate_GIF2(G, Locomotives, Torpedoes)
+    infoDF.to_excel(r'Output Locations.xlsx', index = False)
+#    generate_GIF2(G, Locomotives, Torpedoes)
     
     

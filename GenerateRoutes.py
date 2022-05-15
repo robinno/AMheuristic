@@ -7,11 +7,11 @@ Created on Sun May  1 15:01:53 2022
 
 import networkx as nx
 
-from PARAMS import nWB, nGA, nGB, nD, nRy, nSwitches
+from PARAMS import nWB, nWo, nGA, nGB, nD, nRy, nSwitches
 
 # returns TRUE if connected to the front of the train
 def PickupNode(DiG, node, dist = 1):
-    pred = node in nWB + nGB + nRy
+    pred = node in nWB + nGB + nRy + nWo
     
     for i in range(dist):
         if pred:
@@ -23,7 +23,7 @@ def PickupNode(DiG, node, dist = 1):
   
 # returns TRUE if connected to the front of the train
 def DropNode(DiG, node, dist = 1):
-    pred = node in nWB + nGB + nD
+    pred = node in nWB + nGB + nD + nWo
     
     for i in range(dist):
         if pred:
@@ -155,59 +155,69 @@ def generate_route(G, DiG, Loco, start, finish, frontLoad = 0, backLoad = 0):
             
     return path
 
-def generate_route_RM_Unreachables(G, DiG, Loco, start, finish, t, Torpedoes, frontLoad = 0, backLoad = 0):
+def generate_route_RM_Unreachables(G, DiG, Loco, start, finish, t, Torpedoes, frontLoad = 0, backLoad = 0, extraRMnodes = []):
     H = G.copy()
     DiH = DiG.copy()
     
     for tp in Torpedoes:
         H.remove_node(tp.location[t])
         DiH.remove_node(tp.location[t])
+        
+    for node in extraRMnodes:
+        H.remove_node(node)
+        DiH.remove_node(node)
             
     return generate_route(H, DiH, Loco, start, finish, frontLoad = frontLoad, backLoad = backLoad)
 
 def convertToTProute(G, DiG, t, vLoc, succVehicle = None, predVehicle = None):
     
     if succVehicle != None:
-        plan = [None] * len(succVehicle.plan)
+        sPlan = succVehicle.plan
+        
+        if None in sPlan:
+            sPlan = succVehicle.plan[:succVehicle.plan.index(None)]
+        
+        plan = [None] * len(sPlan)
         currLocation = vLoc
 
-        for index, node in enumerate(succVehicle.plan):
+        for index, node in enumerate(sPlan):
             nextNodeList = list(DiG.predecessors(node))
             neighbors = list(G.neighbors(currLocation))
                 
             candidates = [i for i in nextNodeList if i in neighbors]
             
+            n = nextNodeList[0]
+            
             if len(nextNodeList) > 1: # special case
                 for n_candidate in candidates:
-                    if n_candidate in succVehicle.plan[index:]:
+                    if n_candidate in sPlan[index:]:
                         n = n_candidate
-                        break
-                    else:
-                        n = n_candidate                              
-            else:
-                n = nextNodeList[0]
+                        break                              
                 
             plan[index] = currLocation = n
         return plan
     elif predVehicle != None:
-        plan = [None] * len(predVehicle.plan)
+        pPlan = predVehicle.plan
+        
+        if None in pPlan:
+            pPlan = predVehicle.plan[:predVehicle.plan.index(None)]
+        
+        plan = [None] * len(pPlan)
         currLocation = vLoc
 
-        for index, node in enumerate(predVehicle.plan):
+        for index, node in enumerate(pPlan):
             nextNodeList = list(DiG.successors(node))
             neighbors = list(G.neighbors(currLocation))
                 
             candidates = [i for i in nextNodeList if i in neighbors]
             
+            n = nextNodeList[0]
+            
             if len(nextNodeList) > 1: # special case
                 for n_candidate in candidates:
-                    if n_candidate in predVehicle.plan[index:]:
+                    if n_candidate in pPlan[index:]:
                         n = n_candidate
                         break
-                    else:
-                        n = n_candidate                              
-            else:
-                n = nextNodeList[0]
             
             plan[index] = currLocation = n
         return plan

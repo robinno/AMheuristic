@@ -7,7 +7,7 @@ Created on Wed Apr 27 16:46:36 2022
 
 from PARAMS import H, run_in, Allowed_Connections, connect_slots
 from GenerateRoutes import convertToTProute
-from TaskSelection import naiveSelection
+from TaskSelection import EDD
 
 class Locomotive:    
     def __init__(self, name, location):        
@@ -25,6 +25,8 @@ class Locomotive:
         
         self.state = "Drive"
         self.task = None
+        
+        self.prioMvmt = 100
         
     def loaded(self):
         for tp in self.front_connected + self.back_connected:
@@ -47,19 +49,23 @@ class Locomotive:
         
         if self.task == None:
             # pick a new task
-            taskPack = naiveSelection(G, DiG, t, self, Torpedoes)
+            taskPack = EDD(G, DiG, t, self, Torpedoes)
             
             if(taskPack) != None:
-                self.task, self.plan, self.DeliverPath = taskPack
-                print("Task: ", self.task.name, self.task.tp)
-                print("Path pickup: ", self.plan) 
+                self.task, self.plan, self.DeliverPath, self.prioMvmt = taskPack
+                print("Task: ", self.task.name, self.task.tp, self.prioMvmt)
+#                print("Path pickup: ", self.plan) 
             
-            pass
             self.state = "Pickup"
     
         if self.state == "Pickup":
             if(len(self.plan) > 0):
                 self.location[t] = self.plan.pop(0)
+                
+                if self.location[t] == None:
+                    self.location[t] = self.location[t-1]
+                    self.state = "Connect"
+                    self.connectionCounter = connect_slots
             else:
                 self.state = "Connect"
                 self.connectionCounter = connect_slots
@@ -79,9 +85,11 @@ class Locomotive:
                 if torpedo.location[t-1] in list(DiG.predecessors(self.location[t])):
                     self.back_connected[0] = torpedo
                     torpedo.plan = convertToTProute(G, DiG, t, torpedo.location[t-1], succVehicle = self, predVehicle = None)
+                    torpedo.prioMvmt = self.prioMvmt
                 elif torpedo.location[t-1] in list(DiG.successors(self.location[t])):
                     self.front_connected[0] = torpedo
                     torpedo.plan = convertToTProute(G, DiG, t, torpedo.location[t-1], succVehicle = None, predVehicle = self)
+                    torpedo.prioMvmt = self.prioMvmt
                 else:
                     raise Exception("!! Problem: no torpedo next to loco !!")
                     self.front_connected[0] = torpedo
@@ -90,8 +98,14 @@ class Locomotive:
             if len(self.plan) > 0:
                 # move loco:
                 self.location[t] = self.plan.pop(0)
+                
+                if self.location[t] == None:
+                    self.location[t] = self.location[t-1]
+                    self.state = "Disconnect"
+                    self.connectionCounter = connect_slots
             else:
                 self.state = "Disconnect"
+                self.connectionCounter = connect_slots
             
         elif self.state == "Disconnect":
             torpedo = [i for i in Torpedoes if i.number == self.task.tp][0]
@@ -99,11 +113,16 @@ class Locomotive:
             if(self.connectionCounter > 0):
                 self.connectionCounter -= 1 
             else:
+                if len(self.plan) > 0:
+                    # still a pickup action to do!
+                    self.state = "Pickup"
+                else:
+                    self.state = None
+                    self.task = None
+                
                 torpedo.Locomotive = None
                 self.back_connected[0] = None
                 self.front_connected[0] = None
-                self.state = None
-                self.task = None
         
         
 #        if len(self.plan) == 0:

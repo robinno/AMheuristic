@@ -25,6 +25,8 @@ class Torpedo:
         self.Locomotive = None
         self.taskTimeCounter = 0
         
+        self.prioMvmt = 100
+        
     def Reset(self):
         for task in self.tasks:
             task.finished = False
@@ -47,6 +49,9 @@ class Torpedo:
             self.state[t] = "Empty"
         
         task.finished = True
+        task.finishTime = t
+        
+        self.prioMvmt = 100
         
     def CurrentTask(self):
         todo = [i for i in self.tasks if i.finished == False]
@@ -59,7 +64,7 @@ class Torpedo:
         # location updating
         if len(self.plan) > 0:
             self.location[t] = self.plan.pop(0)
-            print("Popped location", self.location[t])
+#            print("Popped location", self.location[t])
         
         # task updating
         if self.taskTimeCounter > 0:

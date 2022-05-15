@@ -39,7 +39,7 @@ nWo = [39, 168, 167, 166, 165, 164]
 nD = [23,27]
 
 #Emptying nodes
-nRy = [2,3,10]
+nRy = [3,10]
 
 # generated in import
 nSwitches = []
