@@ -108,19 +108,23 @@ def available_tasks(G, DiG, t, Loco, Torpedoes, storePic = True):
                 
                 if CurrentCastingNode in nGA1:
                     WaitingZone = nWA1
-                    blockingNode = 90
+                    blockingNode = 61
                 elif CurrentCastingNode in nGA2:
                     WaitingZone = nWA2
-                    blockingNode = 81
+                    blockingNode = 50
                 elif CurrentCastingNode in nGB1:
                     WaitingZone = nWB1
-                    blockingNode = 61
+                    blockingNode = 90
                 else:
                     WaitingZone = nWB2
-                    blockingNode = 50
+                    blockingNode = 81
                     
                 # filter out self movement:
                 if torpedoLocation in WaitingZone:
+                    continue
+                
+                # Does the blocking hole have a torpedo on it currently?
+                if len([tp for tp in Torpedoes if tp.location[t] == blockingNode]) > 0:
                     continue
                     
                 # find the next use of the blocking hole
@@ -160,19 +164,23 @@ def available_tasks(G, DiG, t, Loco, Torpedoes, storePic = True):
                 
                 if CurrentCastingNode in nGA1:
                     WaitingZone = nFA1
-                    blockingNode = 86
+                    blockingNode = 56
                 elif CurrentCastingNode in nGA2:
                     WaitingZone = nFA2
-                    blockingNode = 75
+                    blockingNode = 44
                 elif CurrentCastingNode in nGB1:
                     WaitingZone = nFB1
-                    blockingNode = 56
+                    blockingNode = 86
                 else:
                     WaitingZone = nFB2
-                    blockingNode = 44
+                    blockingNode = 75
                     
                 # filter out self movement:
                 if torpedoLocation in WaitingZone:
+                    continue
+                   
+                # Does the blocking hole have a torpedo on it currently?
+                if len([tp for tp in Torpedoes if tp.location[t] == blockingNode]) > 0:
                     continue
                     
                 # find the next use of the blocking hole

@@ -8,32 +8,32 @@ Created on Wed Mar 30 11:55:00 2022
 """ SPECIAL NODES """
 
 #Casting holes:
-nGA1 = [75,81]
-nGA2 = [86,90]
-nGA = nGA1+nGA2
-
-nGB1 = [44,50]
-nGB2 = [56,61]
+nGB1 = [75,81]
+nGB2 = [86,90]
 nGB = nGB1+nGB2
+
+nGA1 = [44,50]
+nGA2 = [56,61]
+nGA = nGA1+nGA2
 
 nG = nGA + nGB
 
 #Waiting nodes:
-nWA1 = [127,92,91]
-nFA1 = [126]
-nWA2 = [125, 124, 82]
-nFA2 = [130]
-
-nWA = nWA1+nFA1+nWA2+nFA2
-
-nWB1 = [105,63,101]
-nFB1 = [104]
-nWB2 = [103, 51, 99]
-nFB2 = [102]
+nWB1 = [127,92,91]
+nFB1 = [126]
+nWB2 = [125, 124, 82]
+nFB2 = [130]
 
 nWB = nWB1+nFB1+nWB2+nFB2
 
-nWo = [39, 168, 167, 166, 165, 164]
+nWA1 = [105,63,101]
+nFA1 = [104]
+nWA2 = [103, 51, 99]
+nFA2 = [102]
+
+nWA = nWA1+nFA1+nWA2+nFA2
+
+nWo = [141, 140, 16, 171, 170, 169, 39, 168, 167, 166, 165, 164, 163, 162, 38]
 
 #Desulphuring nodes
 nD = [23,27]

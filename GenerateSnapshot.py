@@ -15,7 +15,7 @@ from Task import Task
 from Visualise import plot_Graph2
 from ImportNetwork import import_network
 
-from PARAMS import nWo
+from PARAMS import nWo, nGA1, nGA2, nGB1, nGB2, nWA1, nWB1
 
 
 def generate_TPs(Tasks):
@@ -53,7 +53,7 @@ def generate_Locos(DiG):
 def set_TPlocation(G, df, Torpedoes):
     
     # first 5 TPs => 1 under each hole, 3 reserves:
-    nodesA = [75,81,127,92,91]
+    nodesA = nGA1 + nWA1
     GietA = df[df["Hoo"] == 'A']
     EersteAftapA = GietA.iloc[0]["Aftap"]
     
@@ -71,7 +71,7 @@ def set_TPlocation(G, df, Torpedoes):
     remainingTPs = [tp for tp in Torpedoes if tp.location[0] == None]
         
     
-    nodesB = [44,50,105,63,101]
+    nodesB = nGB1 + nWB1
     GietB = df[df["Hoo"] == 'B']
     EersteAftapB = GietB.iloc[0]["Aftap"]
     
@@ -87,7 +87,7 @@ def set_TPlocation(G, df, Torpedoes):
     remainingTPs = [tp for tp in Torpedoes if tp.location[0] == None]
             
     # next 2 tps under the other casting hole
-    nodesA = [86,90]
+    nodesA = nGA2
     TweedeAftapA = GietA.iloc[iA + 1]["Aftap"]
     
     for i in range(iA+1, iA + 1 + min(2, len(remainingTPs))):
@@ -98,7 +98,7 @@ def set_TPlocation(G, df, Torpedoes):
             
     remainingTPs = [tp for tp in Torpedoes if tp.location[0] == None]
             
-    nodesB = [56,61]
+    nodesB = nGB2
     TweedeAftapB = GietB.iloc[iB + 1]["Aftap"]
     
     for i in range(iB+1, iB + 1 + min(2, len(remainingTPs))):

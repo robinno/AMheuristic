@@ -7,11 +7,11 @@ Created on Sun May  1 15:01:53 2022
 
 import networkx as nx
 
-from PARAMS import nWB, nWo, nGA, nGB, nD, nRy, nSwitches
+from PARAMS import nWA, nWo, nGA, nGB, nD, nRy, nSwitches
 
 # returns TRUE if connected to the front of the train
 def PickupNode(DiG, node, dist = 1):
-    pred = node in nWB + nGB + nRy + nWo
+    pred = node in nWA + nGA + nRy + nWo
     
     for i in range(dist):
         if pred:
@@ -23,7 +23,7 @@ def PickupNode(DiG, node, dist = 1):
   
 # returns TRUE if connected to the front of the train
 def DropNode(DiG, node, dist = 1):
-    pred = node in nWB + nGB + nD + nWo
+    pred = node in nWA + nGA + nD + nWo
     
     for i in range(dist):
         if pred:
