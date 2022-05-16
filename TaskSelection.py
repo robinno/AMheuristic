@@ -66,12 +66,12 @@ def addIfValidTask(G, DiG, Tasklist, task, t, Loco, Torpedoes, torpedolocation, 
                 
                 DeliverPath = D1 + [None] + P1 + [None] + D2
         
-        Tasklist.append((task, PickupPath, DeliverPath, prio))
+        Tasklist.append((task, PickupPath, DeliverPath, prio, destNode))
 
 def WZ_destNode_ifAllowed(Torpedoes, currTask, t, nodeList, castingNode = None):
     for i in range(len(nodeList) - 1, -1, -1):
         currNode = nodeList[i]
-        tps_on_node = [tp for tp in Torpedoes if tp.location[t] == currNode]
+        tps_on_node = [tp for tp in Torpedoes if tp.location[t] == currNode or tp.destNode == currNode]
         if len(tps_on_node) == 0:
             return currNode
         elif len(tps_on_node) != 0 and i == 0:  #full already
@@ -83,7 +83,8 @@ def WZ_destNode_ifAllowed(Torpedoes, currTask, t, nodeList, castingNode = None):
     
 
 def available_tasks(G, DiG, t, Loco, Torpedoes, storePic = True):
-    Current_movement_tasks = [tp.CurrentTask() for tp in Torpedoes if tp.CurrentTask() != None and "->" in tp.CurrentTask().name]
+    Current_movement_tasks = [tp.CurrentTask() for tp in Torpedoes 
+                              if tp.CurrentTask() != None and "->" in tp.CurrentTask().name and tp.reserved == False]
     Filling_tasks = [task for tp in Torpedoes for task in tp.tasks if not task.finished and task.name == "Fill"]
 
     Tasklist = []
@@ -227,7 +228,7 @@ def EDD(G, DiG, t, Loco, Torpedoes):    #select earliest due date
     if len(AvTasks) > 0:
         print("Loco selecting task at time {}\t -> available tasks: {}".format(t, len(AvTasks)))
 #        plot_Graph2(G, t, Torpedoes, [Loco], bigSize=False)
-        print("Available tasks: ", [(t.name, t.tp, wz) for t, x, y, wz in AvTasks])        
+        print("Available tasks: ", [(t.name, t.tp, wz, dn) for t, x, y, wz, dn in AvTasks])        
         return AvTasks[0] # pick most urgent task
 
 #DiG = import_network()

@@ -81,6 +81,9 @@ L = 0 # number of locomotives
 # where to pick the data
 StartTime = '2017-08-27 15:02:40'
 
+# look ahead for conflict detection and resolution
+lookAhead = 20
+
 
 
 

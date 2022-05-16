@@ -50,6 +50,9 @@ for tp in Torpedoes:
         
 info.append(row)
 
+#KPI
+latecounter = 0
+
 try:
     print("Simulating")
     for t in range(1, H+run_in):#tqdm(range(1, H + run_in), position=0, leave=True):
@@ -61,10 +64,25 @@ try:
         for l in Locomotives: 
             l.update(G, DiG, t, Torpedoes)
             
+        """ KPIs """
+        CurrentFillTasks = []
+        for tp in Torpedoes:
+            for task in tp.tasks:
+                if task.name == "Fill" and t > task.EST and t < task.EFT:
+                    CurrentFillTasks.append(task)
+        
+        for task in CurrentFillTasks:
+            tp = [i for i in Torpedoes if task.tp == i.number][0]
+            if tp.location[t] != task.castingNode:
+                row["TP at castNode"] = False
+                latecounter += 1
+            else:
+                row["TP at castNode"] = True
+            
+            
         """ interpretation """
         for l in Locomotives:        
             row["loco {} location".format(l.name)] = l.location[t]
-            
             
         for tp in Torpedoes:
             row["Tp {} location".format(tp.number)] = tp.location[t]
@@ -75,19 +93,22 @@ except Exception:
     traceback.print_exc()
         
 finally:
+    # print KPI's
+    print("Number of timeslots TP too late (both HOO): {} => perc: {:.0%}".format(latecounter, latecounter / (2*(H+run_in))))
+    
+    #interpret
     tasks = []
     for tp in Torpedoes:
         for task in tp.tasks:
             tasks.append({"name": task.name, 
                           "tp": task.tp, 
                           "Finished": task.finished,
-                          "Finish Time": task.finishTime})
-    
+                          "Finish Time": task.finishTime})    
     
     TasksDF = pd.DataFrame(tasks)
     
     infoDF = pd.DataFrame(info)
     infoDF.to_excel(r'Output Locations.xlsx', index = False)
-#    generate_GIF2(G, Locomotives, Torpedoes)
+    generate_GIF2(G, Locomotives, Torpedoes)
     
     

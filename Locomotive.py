@@ -28,6 +28,9 @@ class Locomotive:
         
         self.prioMvmt = 100
         
+        #for the genetic algorithm
+#        self.choosingPlan = [("Pick", 0) for i in range()]
+        
     def loaded(self):
         for tp in self.front_connected + self.back_connected:
             if tp != None:
@@ -52,9 +55,11 @@ class Locomotive:
             taskPack = EDD(G, DiG, t, self, Torpedoes)
             
             if(taskPack) != None:
-                self.task, self.plan, self.DeliverPath, self.prioMvmt = taskPack
+                self.task, self.plan, self.DeliverPath, self.prioMvmt,  destNode = taskPack
+                torpedo = [i for i in Torpedoes if i.number == self.task.tp][0]
+                torpedo.reserved = True
+                torpedo.destNode = destNode
                 print("Task: ", self.task.name, self.task.tp, self.prioMvmt)
-#                print("Path pickup: ", self.plan) 
             
             self.state = "Pickup"
     
@@ -121,6 +126,8 @@ class Locomotive:
                     self.task = None
                 
                 torpedo.Locomotive = None
+                torpedo.reserved = False
+                torpedo.destNode = None
                 self.back_connected[0] = None
                 self.front_connected[0] = None
         

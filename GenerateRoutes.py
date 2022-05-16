@@ -133,6 +133,7 @@ def generate_route(G, DiG, Loco, start, finish, frontLoad = 0, backLoad = 0):
             
             if FtoBchange:        
                 for j in range(backLoad + 1):
+#                    print("Problem with backload ? : ", backLoad, DivertNode)
                     DivertNode = list(DiG.successors(DivertNode))[0]
                     
             elif BtoFchange:

@@ -23,9 +23,11 @@ class Torpedo:
         self.plan = []
         
         self.Locomotive = None
+        self.reserved = False
         self.taskTimeCounter = 0
         
         self.prioMvmt = 100
+        self.destNode = None
         
     def Reset(self):
         for task in self.tasks:
