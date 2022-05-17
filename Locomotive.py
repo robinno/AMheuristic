@@ -51,17 +51,22 @@ class Locomotive:
         self.location[t] = self.location[t-1]
         
         if self.task == None:
-            # pick a new task
-            taskPack = EDD(G, DiG, t, self, Torpedoes)
-            
-            if(taskPack) != None:
-                self.task, self.plan, self.DeliverPath, self.prioMvmt,  destNode = taskPack
-                torpedo = [i for i in Torpedoes if i.number == self.task.tp][0]
-                torpedo.reserved = True
-                torpedo.destNode = destNode
-                print("Task: ", self.task.name, self.task.tp, self.prioMvmt)
-            
-            self.state = "Pickup"
+            if(len(self.plan) > 0): # avoiding plan
+                self.location[t] = self.plan.pop(0)
+                if self.location[t] == None:
+                    self.location[t] = self.location[t-1]
+            else:
+                # pick a new task
+                taskPack = EDD(G, DiG, t, self, Torpedoes)
+                
+                if(taskPack) != None:
+                    self.task, self.plan, self.DeliverPath, self.prioMvmt,  destNode = taskPack
+                    torpedo = [i for i in Torpedoes if i.number == self.task.tp][0]
+                    torpedo.reserved = True
+                    torpedo.destNode = destNode
+                    print("Task: ", self.task.name, self.task.tp, self.prioMvmt)
+                
+                self.state = "Pickup"            
     
         if self.state == "Pickup":
             if(len(self.plan) > 0):
