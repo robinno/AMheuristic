@@ -5,7 +5,7 @@ Created on Wed Apr 27 16:46:36 2022
 @author: robin
 """
 
-from PARAMS import H, run_in, Allowed_Connections, connect_slots
+from PARAMS import H, run_in, Allowed_Connections, connect_slots, stratLength
 from GenerateRoutes import convertToTProute
 from TaskSelection import EDD
 
@@ -23,13 +23,19 @@ class Locomotive:
         self.front_connected = [None] * Allowed_Connections
         self.back_connected = [None] * Allowed_Connections
         
-        self.state = "Drive"
+        self.state = "Waiting"
         self.task = None
         
         self.prioMvmt = 100
         
         #for the genetic algorithm
-#        self.choosingPlan = [("Pick", 0) for i in range()]
+        self.choosingPlan = [("Pick", 0) for i in range(stratLength)]
+        
+    def frontLoad(self):
+        return len([i for i in self.front_connected if i != None])
+    
+    def backLoad(self):
+        return len([i for i in self.back_connected if i != None])
         
     def loaded(self):
         for tp in self.front_connected + self.back_connected:
@@ -55,6 +61,8 @@ class Locomotive:
                 self.location[t] = self.plan.pop(0)
                 if self.location[t] == None:
                     self.location[t] = self.location[t-1]
+                    
+                self.state = "Waiting"
             else:
                 # pick a new task
                 taskPack = EDD(G, DiG, t, self, Torpedoes)
@@ -127,7 +135,7 @@ class Locomotive:
                     # still a pickup action to do!
                     self.state = "Pickup"
                 else:
-                    self.state = None
+                    self.state = "Waiting"
                     self.task = None
                 
                 torpedo.Locomotive = None

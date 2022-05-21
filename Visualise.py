@@ -167,17 +167,17 @@ def generate_GIF(G, Locations):
     print("GIF: constructing gif")
     imageio.mimsave('GIF/movements.gif', images)
     
-def generate_GIF2(G, Locomotives, Torpedoes):
+def generate_GIF2(G, Locomotives, Torpedoes, start = 0, end = H + run_in, dpi = 20):
     
     print("GIF: Generating Frames")
     
     #generate frames
-    for t in tqdm(range(H + run_in), position=0, leave=True):
-        plot_Graph2(G, t, Torpedoes, Locomotives, save=True)
+    for t in tqdm(range(start, end), position=0, leave=True):
+        plot_Graph2(G, t, Torpedoes, Locomotives, save=True, dpi=dpi)
         
     print("GIF: Importing Frames")
     images = []
-    for t in tqdm(range(H+run_in), position=0, leave=True):
+    for t in tqdm(range(start, end), position=0, leave=True):
         images.append(imageio.imread("plots/{}.png".format(t)))
         
     print("GIF: constructing gif")

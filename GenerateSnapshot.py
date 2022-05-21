@@ -43,16 +43,16 @@ def generate_TPs(Tasks):
 
 def generate_Locos(DiG):
     #Locomotive locations:
-    Locomotives = [Loco.Locomotive("A", 36),
-                   Loco.Locomotive("B", 67)]#,
-#                   Loco.Locomotive("C", 21)]
+    Locomotives = [Loco.Locomotive("A", 157),
+                   Loco.Locomotive("B", 68)]#,
+#                   Loco.Locomotive("C", 147)]
     
     return Locomotives
     
     
 def set_TPlocation(G, df, Torpedoes):
     
-    # first 5 TPs => 1 under each hole, 3 reserves:
+    # first 5 TPs => 1 under each hole, max 3 reserves:
     nodesA = nGA1 + nWA1
     GietA = df[df["Hoo"] == 'A']
     EersteAftapA = GietA.iloc[0]["Aftap"]

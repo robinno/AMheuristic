@@ -105,7 +105,7 @@ def calc_Min_Traveltime(G):
         
     return MinLengths
 
-def generate_route(G, DiG, Loco, start, finish, frontLoad = 0, backLoad = 0):
+def generate_route(G, DiG, start, finish, frontLoad = 0, backLoad = 0):
     try:
         path = list(nx.shortest_path(G, source = start, target = finish))
     except:
@@ -156,19 +156,15 @@ def generate_route(G, DiG, Loco, start, finish, frontLoad = 0, backLoad = 0):
             
     return path
 
-def generate_route_RM_Unreachables(G, DiG, Loco, start, finish, t, Torpedoes, frontLoad = 0, backLoad = 0, extraRMnodes = []):
+def generate_route_RM(G, DiG, start, finish, frontLoad = 0, backLoad = 0, RMnodes = []):
     H = G.copy()
     DiH = DiG.copy()
-    
-    for tp in Torpedoes:
-        H.remove_node(tp.location[t])
-        DiH.remove_node(tp.location[t])
         
-    for node in extraRMnodes:
+    for node in RMnodes:
         H.remove_node(node)
         DiH.remove_node(node)
             
-    return generate_route(H, DiH, Loco, start, finish, frontLoad = frontLoad, backLoad = backLoad)
+    return generate_route(H, DiH, start, finish, frontLoad = frontLoad, backLoad = backLoad)
 
 def convertToTProute(G, DiG, t, vLoc, succVehicle = None, predVehicle = None):
     

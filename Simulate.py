@@ -10,6 +10,7 @@ import traceback
 from tqdm import tqdm
 import os
 import glob
+from itertools import combinations
 
 from PARAMS import H, run_in
 
@@ -17,6 +18,7 @@ from ImportNetwork import import_network
 from GenerateSnapshot import generate_TPs, generate_Locos, set_TPlocation
 from ImportTPdata import generateTaskList, importTpData
 from Visualise import generate_GIF2
+from ConflictResolution import resolve_conflict
 
 # clear plot folders:
 files = glob.glob('keyMoments/*.png')
@@ -56,6 +58,11 @@ latecounter = 0
 try:
     print("Simulating")
     for t in range(1, H+run_in):#tqdm(range(1, H + run_in), position=0, leave=True):
+        
+        #testing purposes
+        if t >= 460:
+            print("stopping point")
+        
         row = {}
         row["t"] = t
         
@@ -63,6 +70,17 @@ try:
             tp.update(t)
         for l in Locomotives: 
             l.update(G, DiG, t, Torpedoes)
+            
+        F = G.copy()
+        DiF = DiG.copy()
+        for node in [tp.location[t] for tp in Torpedoes if tp.Locomotive == None]:
+            F.remove_node(node)
+            DiF.remove_node(node)
+            
+        Loco_pairs = list(combinations(Locomotives, 2))
+        for pair in Loco_pairs:
+            print(t, pair[0].name, pair[1].name)
+            resolve_conflict(F, DiF, pair[0], pair[1], t)
             
         """ KPIs """
         CurrentFillTasks = []
@@ -83,6 +101,7 @@ try:
         """ interpretation """
         for l in Locomotives:        
             row["loco {} location".format(l.name)] = l.location[t]
+            row["loco {} state".format(l.name)] = l.state
             
         for tp in Torpedoes:
             row["Tp {} location".format(tp.number)] = tp.location[t]
@@ -109,6 +128,6 @@ finally:
     
     infoDF = pd.DataFrame(info)
     infoDF.to_excel(r'Output Locations.xlsx', index = False)
-    generate_GIF2(G, Locomotives, Torpedoes)
+    generate_GIF2(G, Locomotives, Torpedoes, start = 420, end = 480, dpi=100)
     
     

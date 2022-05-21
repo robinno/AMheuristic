@@ -8,7 +8,7 @@ Created on Wed May  4 21:27:15 2022
 #from ImportNetwork import import_network
 #from GenerateSnapshot import generate_TPs, generate_Locos, set_TPlocation
 #from ImportTPdata import generateTaskList, importTpData
-from GenerateRoutes import PickupNode, DropNode, generate_route_RM_Unreachables
+from GenerateRoutes import PickupNode, DropNode, generate_route_RM
 from PARAMS import nD, nRy, nGA, nGA1, nGA2, nGB, nGB1, nGB2
 from PARAMS import nWA, nWB, nWo, nWA1, nWA2, nWB1, nWB2, nFA1, nFA2, nFB1, nFB2
 from Visualise import plot_Graph2
@@ -20,9 +20,15 @@ def addIfValidTask(G, DiG, Tasklist, task, t, Loco, Torpedoes, torpedolocation, 
     
     frontLoad=len([i for i in Loco.front_connected if i != None])
     backLoad=len([i for i in Loco.back_connected if i != None])
+    
+    RMnodes = [tp.location[t] for tp in Torpedoes]
         
-    PickupPath = generate_route_RM_Unreachables(G, DiG, Loco, start, PL, t, Torpedoes, frontLoad, backLoad)
-    DeliverPath = generate_route_RM_Unreachables(G, DiG, Loco, PL, finish, t, Torpedoes, frontLoad + int(f1), backLoad + int(1-f1))
+    PickupPath = generate_route_RM(G, DiG, start, PL, 
+                                   frontLoad = frontLoad, backLoad = backLoad, 
+                                   RMnodes=RMnodes)
+    DeliverPath = generate_route_RM(G, DiG, PL, finish, 
+                                    frontLoad = frontLoad + int(f1), backLoad = backLoad + int(1-f1), 
+                                    RMnodes=RMnodes)
     
     # valid task?
     if len(PickupPath) > 0 and len(DeliverPath) > 0:        
@@ -39,14 +45,20 @@ def addIfValidTask(G, DiG, Tasklist, task, t, Loco, Torpedoes, torpedolocation, 
                 for i in range(frontLoad + 1):
                     dropLocation = list(DiG.predecessors(dropLocation))[0]    
                     
-                D1 = generate_route_RM_Unreachables(G, DiG, Loco, PL, dropLocation, t, Torpedoes, frontLoad + int(f1), backLoad + int(1-f1))
+                D1 = generate_route_RM(G, DiG, PL, dropLocation, 
+                                       frontLoad = frontLoad + int(f1), backLoad = backLoad + int(1-f1), 
+                                       RMnodes=RMnodes)
                     
                 pickupLocation = switchNode
                 for i in range(backLoad + 1):
                     pickupLocation = list(DiG.successors(pickupLocation))[0] 
                     
-                P1 = generate_route_RM_Unreachables(G, DiG, Loco, dropLocation, pickupLocation, t, Torpedoes, frontLoad, backLoad)
-                D2 = generate_route_RM_Unreachables(G, DiG, Loco, pickupLocation, finish, t, Torpedoes, frontLoad + int(1-f2), backLoad + int(f2))
+                P1 = generate_route_RM(G, DiG, dropLocation, pickupLocation, 
+                                       frontLoad = frontLoad, backLoad = backLoad, 
+                                       RMnodes=RMnodes)
+                D2 = generate_route_RM(G, DiG, pickupLocation, finish, 
+                                       frontLoad = frontLoad + int(1-f2), backLoad = backLoad + int(f2), 
+                                       RMnodes=RMnodes)
                 
                 DeliverPath = D1 + [None] + P1 + [None] + D2
                 
@@ -55,23 +67,29 @@ def addIfValidTask(G, DiG, Tasklist, task, t, Loco, Torpedoes, torpedolocation, 
                 for i in range(backLoad + 1):
                     dropLocation = list(DiG.successors(dropLocation))[0]    
                     
-                D1 = generate_route_RM_Unreachables(G, DiG, Loco, PL, dropLocation, t, Torpedoes, frontLoad + int(f1), backLoad + int(1-f1))
+                D1 = generate_route_RM(G, DiG, PL, dropLocation, 
+                                       frontLoad = frontLoad + int(f1), backLoad = backLoad + int(1-f1), 
+                                       RMnodes=RMnodes)
                     
                 pickupLocation = switchNode
                 for i in range(frontLoad + 1):
                     pickupLocation = list(DiG.predecessors(pickupLocation))[0] 
                     
-                P1 = generate_route_RM_Unreachables(G, DiG, Loco, dropLocation, pickupLocation, t, Torpedoes, frontLoad + int(f1), backLoad + int(1-f1), extraRMnodes = [switchNode])
-                D2 = generate_route_RM_Unreachables(G, DiG, Loco, pickupLocation, finish, t, Torpedoes, frontLoad + int(f1), backLoad + int(1-f1))
+                P1 = generate_route_RM(G, DiG, dropLocation, pickupLocation, 
+                                       frontLoad = frontLoad + int(f1), backLoad = backLoad + int(1-f1), 
+                                       RMnodes=RMnodes + [switchNode])
+                D2 = generate_route_RM(G, DiG, pickupLocation, finish, 
+                                       frontLoad = frontLoad + int(f1), backLoad = backLoad + int(1-f1), 
+                                       RMnodes=RMnodes)
                 
                 DeliverPath = D1 + [None] + P1 + [None] + D2
         
         Tasklist.append((task, PickupPath, DeliverPath, prio, destNode))
 
 def WZ_destNode_ifAllowed(Torpedoes, currTask, t, nodeList, castingNode = None):
-    for i in range(len(nodeList) - 1, -1, -1):
+    for i in reversed(range(len(nodeList))):
         currNode = nodeList[i]
-        tps_on_node = [tp for tp in Torpedoes if tp.location[t] == currNode or tp.destNode == currNode]
+        tps_on_node = [tp for tp in Torpedoes if (tp.location[t] == currNode or tp.destNode == currNode) and tp.reserved == False]
         if len(tps_on_node) == 0:
             return currNode
         elif len(tps_on_node) != 0 and i == 0:  #full already
@@ -79,8 +97,7 @@ def WZ_destNode_ifAllowed(Torpedoes, currTask, t, nodeList, castingNode = None):
         
         tp = tps_on_node[0]
         if currTask.LST != None and tp.CurrentTask().LST != None and tp.CurrentTask().LST < currTask.LST: #dont block more urgent task
-            return None
-    
+            return None    
 
 def available_tasks(G, DiG, t, Loco, Torpedoes, storePic = True):
     Current_movement_tasks = [tp.CurrentTask() for tp in Torpedoes 
@@ -231,6 +248,18 @@ def EDD(G, DiG, t, Loco, Torpedoes):    #select earliest due date
         print("Available tasks: ", [(t.name, t.tp, wz, dn) for t, x, y, wz, dn in AvTasks])        
         return AvTasks[0] # pick most urgent task
 
+def pick(G, DiG, t, Loco, Torpedoes):
+    AvTasks = available_tasks(G, DiG, t, Loco, Torpedoes)
+    
+    # Sort the tasklist:
+    # FIRST sort on LST:
+    AvTasks = sorted(AvTasks, key = lambda i: 1000000000 if i[0].LST == None else i[0].LST)
+    # next, sort on WZ priority
+    AvTasks = sorted(AvTasks, key = lambda i: i[3])
+    
+    if len(AvTasks) == 0:
+        return False
+    
 #DiG = import_network()
 #G = DiG.to_undirected()
 #

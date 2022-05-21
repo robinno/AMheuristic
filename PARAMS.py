@@ -82,7 +82,10 @@ L = 0 # number of locomotives
 StartTime = '2017-08-27 15:02:40'
 
 # look ahead for conflict detection and resolution
-lookAhead = 20
+lookAhead = 15
+
+# strategyLength
+stratLength = 20
 
 
 
