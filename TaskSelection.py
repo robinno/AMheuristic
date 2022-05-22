@@ -248,7 +248,7 @@ def EDD(G, DiG, t, Loco, Torpedoes, storePic = True):    #select earliest due da
         print("Available tasks: ", [(t.name, t.tp, wz, dn) for t, x, y, wz, dn in AvTasks])        
         return AvTasks[0] # pick most urgent task
 
-def pick(G, DiG, t, Loco, Torpedoes, storePic = True):
+def pick(G, DiG, t, Loco, Torpedoes, strat, storePic = True):    
     AvTasks = available_tasks(G, DiG, t, Loco, Torpedoes, storePic = storePic)
     
     # Sort the tasklist:
@@ -258,7 +258,9 @@ def pick(G, DiG, t, Loco, Torpedoes, storePic = True):
     AvTasks = sorted(AvTasks, key = lambda i: i[3])
     
     if len(AvTasks) == 0:
-        return False
+        return None
+    else:
+        return AvTasks[strat if strat < len(AvTasks) else len(AvTasks) - 1] # pick the number selected.
     
 #DiG = import_network()
 #G = DiG.to_undirected()

@@ -7,7 +7,7 @@ Created on Wed Apr 27 16:46:36 2022
 
 from PARAMS import H, run_in, Allowed_Connections, connect_slots, stratLength
 from GenerateRoutes import convertToTProute
-from TaskSelection import EDD
+from TaskSelection import EDD, pick
 
 class Locomotive:    
     def __init__(self, name, location):        
@@ -29,7 +29,9 @@ class Locomotive:
         self.prioMvmt = 100
         
         #for the genetic algorithm
-        self.choosingPlan = [("Pick", 0) for i in range(stratLength)]
+        self.strategy = [("Pick", 0) for i in range(stratLength)]
+        self.stratIndex = 0
+        self.waitCounter = 0
         
     def frontLoad(self):
         return len([i for i in self.front_connected if i != None])
@@ -59,13 +61,17 @@ class Locomotive:
         self.state = "Waiting"
         self.task = None
         
-        self.prioMvmt = 100        
+        self.prioMvmt = 100 
         
-    def update(self, G, DiG, t, Torpedoes, storePic = True):
+        self.stratIndex = 0
+        
+    def update(self, G, DiG, t, Torpedoes, picking = "strategic", storePic = True):
         
         self.location[t] = self.location[t-1]
         
-        if self.task == None:
+        if self.waitCounter > 0: # if waiting in strategy
+            self.waitCounter -= 1
+        elif self.task == None:
             if(len(self.plan) > 0): # avoiding plan
                 self.location[t] = self.plan.pop(0)
                 if self.location[t] == None:
@@ -73,17 +79,54 @@ class Locomotive:
                     
                 self.state = "Waiting"
             else:
-                # pick a new task
-                taskPack = EDD(G, DiG, t, self, Torpedoes, storePic)
+                if picking == "EDD":
                 
-                if(taskPack) != None:
-                    self.task, self.plan, self.DeliverPath, self.prioMvmt,  destNode = taskPack
-                    torpedo = [i for i in Torpedoes if i.number == self.task.tp][0]
-                    torpedo.reserved = True
-                    torpedo.destNode = destNode
-                    print("Task: ", self.task.name, self.task.tp, self.prioMvmt)
+                    # pick a new task
+                    taskPack = EDD(G, DiG, t, self, Torpedoes, storePic = storePic)
+                    
+                    if(taskPack) != None:
+                        self.task, self.plan, self.DeliverPath, self.prioMvmt,  destNode = taskPack
+                        torpedo = [i for i in Torpedoes if i.number == self.task.tp][0]
+                        torpedo.reserved = True
+                        torpedo.destNode = destNode
+                        print("Task: ", self.task.name, self.task.tp, self.prioMvmt)
                 
-                self.state = "Pickup"            
+                        self.state = "Pickup"
+                
+                elif picking == "strategic":
+                    if self.stratIndex > len(self.strategy):
+                        raise Exception("Strategy not long enough")
+                    
+                    #what is current strategy?
+                    currStrategy = self.strategy[self.stratIndex]
+                    
+                    strat = currStrategy[0]
+                    number = currStrategy[1]
+                    
+                    # execute current strategy
+                    if strat == "Pick":
+                        # pick a new task
+                        taskPack = pick(G, DiG, t, self, Torpedoes, number, storePic = storePic)
+                        
+                        if(taskPack) != None:
+                            self.task, self.plan, self.DeliverPath, self.prioMvmt,  destNode = taskPack
+                            torpedo = [i for i in Torpedoes if i.number == self.task.tp][0]
+                            torpedo.reserved = True
+                            torpedo.destNode = destNode
+                            print("Task: ", self.task.name, self.task.tp, self.prioMvmt)
+                            
+                            self.stratIndex += 1
+                    
+                            self.state = "Pickup"
+                    elif strat == "Wait":
+                        self.waitCounter = number
+                        self.stratIndex += 1
+                    else:
+                        raise Exception("Unknown strategy")
+                else:
+                    raise Exception("Unknown picking option")
+                
+                
     
         if self.state == "Pickup":
             if(len(self.plan) > 0):
