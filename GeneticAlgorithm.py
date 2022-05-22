@@ -146,7 +146,7 @@ for generation in range(generations):
     
     # determine fitness
     fitnessArr = []
-    for genome in tqdm(population, position=0, leave=True):
+    for genome in tqdm(population, position=0, leave=True, desc="Calc population fitness gen{}: ".format(generation)):
         f = fitness(s, genome)    
         fitnessArr.append(f)
         
@@ -162,7 +162,7 @@ for generation in range(generations):
         
     # generate children: crossover
     newPopulation = []
-    for _ in range(round(generations / 2)):
+    for _ in range(round(popSize / 2)):
         parents = selection_pair(population, normalize_fitness(fitnessArr))
         child1, child2 = single_point_crossover(parents[0], parents[1])
         newPopulation.append(child1)

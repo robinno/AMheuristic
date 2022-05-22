@@ -78,7 +78,7 @@ class Simulation:
             if not suppressOutput:
                 print("Simulating")
                 
-            for t in range(1, H+run_in):#tqdm(range(1, H + run_in), position=0, leave=True):
+            for t in tqdm(range(1, H + run_in), position=0, leave=True, desc="simulating: "):
 
 #                #testing purposes
 #                if t >= 460:
