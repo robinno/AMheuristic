@@ -43,16 +43,25 @@ class Locomotive:
                 return True
         return False
     
-    def Reset(self):
+    def reset(self):
         firstLocation = self.location[0]
         self.location = [None for i in range(H + run_in)]
         self.location[0] = firstLocation
         
+        self.plan = []
+        self.DeliverPath = []
+        
+        self.connectionCounter = 0
+        
         self.front_connected = [None] * Allowed_Connections
         self.back_connected = [None] * Allowed_Connections
         
+        self.state = "Waiting"
+        self.task = None
         
-    def update(self, G, DiG, t, Torpedoes):
+        self.prioMvmt = 100        
+        
+    def update(self, G, DiG, t, Torpedoes, storePic = True):
         
         self.location[t] = self.location[t-1]
         
@@ -65,7 +74,7 @@ class Locomotive:
                 self.state = "Waiting"
             else:
                 # pick a new task
-                taskPack = EDD(G, DiG, t, self, Torpedoes)
+                taskPack = EDD(G, DiG, t, self, Torpedoes, storePic)
                 
                 if(taskPack) != None:
                     self.task, self.plan, self.DeliverPath, self.prioMvmt,  destNode = taskPack

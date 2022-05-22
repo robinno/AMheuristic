@@ -233,8 +233,8 @@ def available_tasks(G, DiG, t, Loco, Torpedoes, storePic = True):
     
     return Tasklist
 
-def EDD(G, DiG, t, Loco, Torpedoes):    #select earliest due date 
-    AvTasks = available_tasks(G, DiG, t, Loco, Torpedoes)
+def EDD(G, DiG, t, Loco, Torpedoes, storePic = True):    #select earliest due date 
+    AvTasks = available_tasks(G, DiG, t, Loco, Torpedoes, storePic = storePic)
     
     # Sort the tasklist:
     # FIRST sort on LST:
@@ -248,8 +248,8 @@ def EDD(G, DiG, t, Loco, Torpedoes):    #select earliest due date
         print("Available tasks: ", [(t.name, t.tp, wz, dn) for t, x, y, wz, dn in AvTasks])        
         return AvTasks[0] # pick most urgent task
 
-def pick(G, DiG, t, Loco, Torpedoes):
-    AvTasks = available_tasks(G, DiG, t, Loco, Torpedoes)
+def pick(G, DiG, t, Loco, Torpedoes, storePic = True):
+    AvTasks = available_tasks(G, DiG, t, Loco, Torpedoes, storePic = storePic)
     
     # Sort the tasklist:
     # FIRST sort on LST:

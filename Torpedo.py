@@ -29,13 +29,25 @@ class Torpedo:
         self.prioMvmt = 100
         self.destNode = None
         
-    def Reset(self):
+    def reset(self):
         for task in self.tasks:
             task.finished = False
         
         firstLocation = self.location[0]
         self.location = [None for i in range(H + run_in)]
         self.location[0] = firstLocation
+        
+        self.state = [None for i in range(H + run_in)]
+        self.state[0] = "Empty"
+        
+        self.plan = []
+        
+        self.Locomotive = None
+        self.reserved = False
+        self.taskTimeCounter = 0
+        
+        self.prioMvmt = 100
+        self.destNode = None
             
             
     def TaskFinished(self, t):
