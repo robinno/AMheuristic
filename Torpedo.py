@@ -7,7 +7,7 @@ Created on Thu Mar 17 15:03:56 2022
 
 import pandas as pd
 
-from PARAMS import H, run_in, nD, nRy
+from PARAMS import H, run_in, nD, nRy, suppressOutput
 #from Task import Task
 
 
@@ -53,7 +53,8 @@ class Torpedo:
     def TaskFinished(self, t):
         task = self.CurrentTask()
         
-        print("TP {}: finished task {} at time {}".format(self.number, task.name, t))
+        if not suppressOutput:
+            print("TP {}: finished task {} at time {}".format(self.number, task.name, t))
         
         if task.name == "Fill":
             self.state[t] = "Full"
@@ -107,17 +108,17 @@ class Torpedo:
                 if self.location[t-1] in nD:
                     self.taskTimeCounter = task.fixedTime
                 else:
-                    print("Not at right location!")
+                    raise Exception("Not at right location!")
             elif task.name == "Configure Ry" or task.name == "Pouring":
                 if self.location[t-1] in nRy:
                     self.taskTimeCounter = task.fixedTime
                 else:
-                    print("Not at right location!")
+                    raise Exception("Not at right location!")
             elif task.name == "Fill" and t == task.EST:
                 if self.location[t-1] == task.castingNode:
                     self.taskTimeCounter = task.fixedTime
                 else:
-                    print("Not at right location!")
+                    raise Exception("Not at right location!")
         
         
     # static method to load data

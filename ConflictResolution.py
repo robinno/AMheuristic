@@ -8,7 +8,7 @@ Created on Mon May 16 16:07:21 2022
 from copy import deepcopy
 import networkx as nx
 
-from PARAMS import lookAhead, nSwitches
+from PARAMS import lookAhead, nSwitches, suppressOutput
 from Locomotive import Locomotive
 from Torpedo import Torpedo
 from ImportNetwork import import_network
@@ -26,18 +26,20 @@ def prepare_plan(vehicle, t):
     return plan
     
 
-def detect_Conflict(plan1, plan2, t):    
+def detect_Conflict(plan1, plan2, t, suppressOutput = False):    
     # detection:
     for i in range(lookAhead-1):
         
         # first case:
         if plan1[i] == plan2[i]:
-            print("Collision detected, type 1! det on {} for collision on {}".format(t, t+i))
+            if not suppressOutput:
+                print("Collision detected, type 1! det on {} for collision on {}".format(t, t+i))
             return i
         
         # second case:
         if plan1[i] == plan2[i+1] and plan1[i+1] == plan2[i]:
-            print("Collision detected, type 2! det on {} for collision on {}".format(t, t+i))
+            if not suppressOutput:
+                print("Collision detected, type 2! det on {} for collision on {}".format(t, t+i))
             return i
             
         
@@ -85,7 +87,8 @@ def findAvNode(G, DiG, continuantPlan, node, avfrontload = 0, avbackload = 0):
         # predecessor case => make sure frontload further in plan, o.w. still on switch
         for i in range(avfrontload): avNode = list(DiG.predecessors(avNode))[0]
     
-    print("avNode = ", avNode)
+    if not suppressOutput:
+       print("avNode = ", avNode)
     return avNode
         
 def CASE1_gen_plans(G, DiG, continuantPlan, avoidingPlan, switch,
@@ -201,7 +204,8 @@ def generate_plans(G, DiG, plan1, plan2, S1, S2, i, frontLoad1 = 0, backLoad1 = 
                         break
                 currNode2 = avList2[0]
                 
-    print("case {}: switch node1 = {}, switch node 2 = {}".format(case, currNode1, currNode2))    
+    if not suppressOutput:
+        print("case {}: switch node1 = {}, switch node 2 = {}".format(case, currNode1, currNode2))    
         
     newplan1 = newplan2 = []
     
@@ -284,14 +288,15 @@ def resolve_conflict(G, DiG, Loco1, Loco2, t):
         plan1 = prepare_plan(vehicle1, t)
         plan2 = prepare_plan(vehicle2, t)
         
-        timeOfCollision = detect_Conflict(plan1, plan2, t)
+        timeOfCollision = detect_Conflict(plan1, plan2, t, suppressOutput = suppressOutput)
         
         if timeOfCollision == -1: # no collision detected:
             continue
     
         S1, S2 = determine_succ_vehicle(DiG, plan1, plan2, timeOfCollision)
         
-        print(front1, S1, " and ", front2, S2)
+        if not suppressOutput:
+            print(front1, S1, " and ", front2, S2)
         
         if S1 != front1 or S2 != front2:            
     
@@ -300,7 +305,7 @@ def resolve_conflict(G, DiG, Loco1, Loco2, t):
                                                     frontLoad1 = Loco1.frontLoad(), backLoad1 = Loco1.backLoad(), 
                                                     frontLoad2 = Loco2.frontLoad(), backLoad2 = Loco2.backLoad())            
             except:
-                print("!!! Unable to resolve conflict!")
+                raise Exception("!!! Unable to resolve conflict!")
                 newplan1 = plan1
                 newplan2 = plan2
                 

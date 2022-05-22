@@ -66,6 +66,7 @@ def set_TPlocation(G, df, Torpedoes):
             n = GietA.iloc[i]["Tp"]
             torpedo = [x for x in Torpedoes if x.number == n][0]
             torpedo.location[0] = nodesA[i]
+            torpedo.prioMvmt = 1
             iA = i
             
     remainingTPs = [tp for tp in Torpedoes if tp.location[0] == None]
@@ -82,6 +83,7 @@ def set_TPlocation(G, df, Torpedoes):
             n = GietB.iloc[i]["Tp"]
             torpedo = [x for x in Torpedoes if x.number == n][0]
             torpedo.location[0] = nodesB[i]
+            torpedo.prioMvmt = 1
             iB = i
             
     remainingTPs = [tp for tp in Torpedoes if tp.location[0] == None]
@@ -116,6 +118,7 @@ def set_TPlocation(G, df, Torpedoes):
             break
         
         remainingTPs[i].location[0] = nWo[len(nWo) - i - 1]
+        remainingTPs[i].prioMvmt = 2
         
     return Torpedoes
 

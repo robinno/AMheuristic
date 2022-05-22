@@ -5,7 +5,7 @@ Created on Wed Apr 27 16:46:36 2022
 @author: robin
 """
 
-from PARAMS import H, run_in, Allowed_Connections, connect_slots, stratLength
+from PARAMS import H, run_in, Allowed_Connections, connect_slots, stratLength, suppressOutput
 from GenerateRoutes import convertToTProute
 from TaskSelection import EDD, pick
 
@@ -113,7 +113,8 @@ class Locomotive:
                             torpedo = [i for i in Torpedoes if i.number == self.task.tp][0]
                             torpedo.reserved = True
                             torpedo.destNode = destNode
-                            print("Task: ", self.task.name, self.task.tp, self.prioMvmt)
+                            if not suppressOutput:
+                                print("Task: ", self.task.name, self.task.tp, self.prioMvmt)
                             
                             self.stratIndex += 1
                     

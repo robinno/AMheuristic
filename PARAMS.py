@@ -66,6 +66,9 @@ RyC_config_slots = round(RyC_casting_config / timestep)
 RyC_init_speed_slots = RyC_init_speed * timestep # in tons/timeslot
 RyC_speed_slots = RyC_speed * timestep # in tons/timeslot
 
+# debug
+suppressOutput = True
+
 # Planning Horizon in seconds
 ph = 3 * 3600
 ri = 0  * 3600
