@@ -134,7 +134,7 @@ def mutate(genome):
 # execution of GA
 # =============================================================================
 s = Simulation(pictures = False)
-population = gen_Population(2)
+population = gen_Population(1)
 
 # keep good solution
 recordScore = 1000

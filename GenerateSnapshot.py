@@ -43,8 +43,8 @@ def generate_TPs(Tasks):
 
 def generate_Locos(DiG):
     #Locomotive locations:
-    Locomotives = [Loco.Locomotive("A", 157),
-                   Loco.Locomotive("B", 68)]#,
+    Locomotives = [Loco.Locomotive("A", 157)]#,
+#                   Loco.Locomotive("B", 68)]#,
 #                   Loco.Locomotive("C", 147)]
     
     return Locomotives
