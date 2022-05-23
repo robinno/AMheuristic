@@ -28,7 +28,7 @@ def prepare_plan(vehicle, t):
 
 def detect_Conflict(plan1, plan2, t, suppressOutput = False):    
     # detection:
-    for i in range(lookAhead-1):
+    for i in range(1, lookAhead-1):
         
         # first case:
         if plan1[i] == plan2[i]:
@@ -101,8 +101,16 @@ def CASE1_gen_plans(G, DiG, continuantPlan, avoidingPlan, switch,
     newContPlan = generate_route_RM(G, DiG, continuantPlan[0], switch)
     
     # correct for waiting position:
-    waitingPositionContinuant = 2
-    if DiG.has_edge(newContPlan[-2], newContPlan[-1]): # successor
+    successor = False
+    if len(newContPlan) < 2:
+        if DiG.has_edge(continuantPlan[0], continuantPlan[1]):
+            successor = True
+    
+    elif DiG.has_edge(newContPlan[-2], newContPlan[-1]):
+        successor = True
+    
+    waitingPositionContinuant = 2       
+    if successor: # successor
         waitingPositionContinuant += cfrontload + avbackload
     else:
         waitingPositionContinuant += cbackload + avfrontload
@@ -143,8 +151,16 @@ def CASE3_gen_plans(G, DiG, continuantPlan, avoidingPlan, switch,
     newContPlan = generate_route_RM(G, DiG, continuantPlan[0], switch)
     
     # correct for waiting position:
+    successor = False
+    if len(newContPlan) < 2:
+        if DiG.has_edge(continuantPlan[0], continuantPlan[1]):
+            successor = True
+    
+    elif DiG.has_edge(newContPlan[-2], newContPlan[-1]):
+        successor = True
+    
     waitingPositionContinuant = 2
-    if DiG.has_edge(newContPlan[-2], newContPlan[-1]): # successor
+    if successor: # successor
         waitingPositionContinuant += cfrontload + avbackload
     else:
         waitingPositionContinuant += cbackload + avfrontload

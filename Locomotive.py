@@ -126,8 +126,6 @@ class Locomotive:
                         raise Exception("Unknown strategy")
                 else:
                     raise Exception("Unknown picking option")
-                
-                
     
         if self.state == "Pickup":
             if(len(self.plan) > 0):
@@ -152,7 +150,7 @@ class Locomotive:
                 
                 self.plan = self.DeliverPath
                 
-                #TODO: fix below
+                #TODO: fix below for multiple tps
                 if torpedo.location[t-1] in list(DiG.predecessors(self.location[t])):
                     self.back_connected[0] = torpedo
                     torpedo.plan = convertToTProute(G, DiG, t, torpedo.location[t-1], succVehicle = self, predVehicle = None)
@@ -162,8 +160,9 @@ class Locomotive:
                     torpedo.plan = convertToTProute(G, DiG, t, torpedo.location[t-1], succVehicle = None, predVehicle = self)
                     torpedo.prioMvmt = self.prioMvmt
                 else:
-                    raise Exception("!! Problem: no torpedo next to loco !!")
-                    self.front_connected[0] = torpedo
+                    raise print("!! Problem: no torpedo next to loco !!")
+                    self.state = "Disconnect"
+#                    self.front_connected[0] = torpedo
         
         elif self.state == "Deliver":
             if len(self.plan) > 0:

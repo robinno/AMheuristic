@@ -157,12 +157,12 @@ class Simulation:
             if gif:
                 generate_GIF2(self.G, self.Locomotives, self.Torpedoes, start = 420, end = 480, dpi=100)
 
-s = Simulation(pictures = False)
-
-s.run(keyMomentsPlot = False, gif = False, ExcelOutput = False)
-
-print("simulation run: Feasible={}, LatePercentage={}".format(s.feasible, s.latePercentage))
-s.reset()
-s.run(keyMomentsPlot = False, gif = False, ExcelOutput = False)
-print("simulation run: Feasible={}, LatePercentage={}".format(s.feasible, s.latePercentage))
+#s = Simulation(pictures = False)
+#
+#s.run(keyMomentsPlot = False, gif = False, ExcelOutput = False)
+#
+#print("simulation run: Feasible={}, LatePercentage={}".format(s.feasible, s.latePercentage))
+#s.reset()
+#s.run(keyMomentsPlot = False, gif = False, ExcelOutput = False)
+#print("simulation run: Feasible={}, LatePercentage={}".format(s.feasible, s.latePercentage))
 

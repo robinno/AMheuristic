@@ -60,7 +60,7 @@ def gen_Genome(no_locos):
 def gen_Population(no_locos):
     return [gen_Genome(no_locos) for _ in range(popSize)]
 
-def fitness(s, genome):
+def fitness(s, genome, save=False):
    s.reset()
       
    # split genome:
@@ -70,13 +70,13 @@ def fitness(s, genome):
    for i, l in enumerate(s.Locomotives):
        l.strategy = Loco_Strat[i]
    
-   s.run()
+   s.run(keyMomentsPlot = save, gif = save, ExcelOutput = save)
    
    # extract KPIs
    feasible = s.feasible
    latePercentage = s.latePercentage
    
-   return latePercentage + (1-feasible) * 10 # penalty for infeasible
+   return latePercentage if feasible else 10 # penalty for infeasible
 
 def normalize_fitness(fitnessArr):
     # normalize fitness array
@@ -174,3 +174,7 @@ for generation in range(generations):
         
     # set new generation as population
     population = newPopulation
+    
+# execute the best one one last time, with pictures enabled:
+print("Running record again ...")
+fitness(s, record, save=True)  
