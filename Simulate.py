@@ -11,6 +11,7 @@ from tqdm import tqdm
 import os
 import glob
 from itertools import combinations
+from copy import deepcopy
 
 from PARAMS import H, run_in, suppressOutput
 
@@ -44,8 +45,25 @@ class Simulation:
         self.Locomotives = generate_Locos(self.DiG)
 
         # KPIs
+        self.latePerBaseline = None
         self.latePercentage = None
         self.feasible = True
+        
+    def setBaselines(self):
+        print("Setting KPI baselines ...")
+        
+        # let all locos do nothing.
+        Loco_Strat = [('Wait', H+run_in), ('Wait', H+run_in)]
+           
+        # set to locos
+        for i, l in enumerate(self.Locomotives):
+            l.strategy = deepcopy(Loco_Strat)
+            
+        self.run()
+        
+        self.latePerBaseline = self.latePercentage
+        
+        self.reset()
 
     def reset(self):
         for tp in self.Torpedoes:
@@ -56,7 +74,7 @@ class Simulation:
         self.latePercentage = None
         self.feasible = True
 
-    def run(self, keyMomentsPlot = False, gif = False, ExcelOutput = False):
+    def run(self, strategy = "strategic", keyMomentsPlot = False, gif = False, ExcelOutput = False):
 
         #interpretation
         info = []
@@ -90,7 +108,7 @@ class Simulation:
                 for tp in self.Torpedoes:
                     tp.update(t)
                 for l in self.Locomotives:
-                    l.update(self.G, self.DiG, t, self.Torpedoes, storePic = keyMomentsPlot)
+                    l.update(self.G, self.DiG, t, self.Torpedoes, picking = strategy, storePic = keyMomentsPlot)
 
                 F = self.G.copy()
                 DiF = self.DiG.copy()
@@ -137,7 +155,7 @@ class Simulation:
             # calculate KPI's
             self.latePercentage = latecounter / (2*(H+run_in))
             # print KPI's
-            print("Number of timeslots TP too late (both HOO): {} => perc: {:.0%}".format(latecounter, self.latePercentage))
+            print("Number of timeslots TP too late (both HOO): {} => perc: {:.2%}".format(latecounter, self.latePercentage / self.latePerBaseline if self.latePerBaseline != None else self.latePercentage))
 
             #interpret
             tasks = []
@@ -146,23 +164,20 @@ class Simulation:
                     tasks.append({"name": task.name,
                                   "tp": task.tp,
                                   "Finished": task.finished,
-                                  "Finish Time": task.finishTime})
-
-#            TasksDF = pd.DataFrame(tasks)
-
+                                  "Finish Time": task.finishTime,
+                                  "Age": task.age})
             if ExcelOutput:
                 infoDF = pd.DataFrame(info)
                 infoDF.to_excel(r'Output Locations.xlsx', index = False)
+                
+                TasksDF = pd.DataFrame(tasks)
+                TasksDF.to_excel(r'Task states.xlsx', index = False)
 
             if gif:
-                generate_GIF2(self.G, self.Locomotives, self.Torpedoes, start = 420, end = 480, dpi=100)
+                generate_GIF2(self.G, self.Locomotives, self.Torpedoes, dpi=100)
 
-#s = Simulation(pictures = False)
-#
-#s.run(keyMomentsPlot = False, gif = False, ExcelOutput = False)
-#
-#print("simulation run: Feasible={}, LatePercentage={}".format(s.feasible, s.latePercentage))
-#s.reset()
-#s.run(keyMomentsPlot = False, gif = False, ExcelOutput = False)
-#print("simulation run: Feasible={}, LatePercentage={}".format(s.feasible, s.latePercentage))
+s = Simulation(pictures = True)
+s.reset()
+s.run(strategy = "EDD", keyMomentsPlot = True, gif = False, ExcelOutput = True)
+print("simulation run: Feasible={}, LatePercentage={}".format(s.feasible, s.latePercentage))
 

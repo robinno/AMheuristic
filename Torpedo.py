@@ -76,6 +76,11 @@ class Torpedo:
         self.state[t] = self.state[t-1]
         self.location[t] = self.location[t-1]
         
+        # update age task
+        task = self.CurrentTask()
+        if task != None:
+            task.age += 1
+        
         # location updating
         if len(self.plan) > 0:
             self.location[t] = self.plan.pop(0)

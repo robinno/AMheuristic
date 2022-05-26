@@ -88,7 +88,7 @@ StartTime = '2017-08-27 15:02:40'
 lookAhead = 15
 
 # strategyLength
-stratLength = 20
+stratLength = 30
 
 
 

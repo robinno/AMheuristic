@@ -25,3 +25,5 @@ class Task:
         self.finished = False
         self.finishTime = None
         
+        self.age = 0
+        

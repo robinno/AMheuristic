@@ -14,25 +14,26 @@ from PARAMS import stratLength, suppressOutput
 from Simulate import Simulation
 
 # GA params
-popSize = 10
-mutProb = 0.1
-generations = 10
+popSize = 20
+mutProb = 0.05
+generations = 50
+
+infPunishment = 1.5
 
 # probability picking or waiting
 prob_pick = 0.5
 
-# picking number and waiting time will be geometric distributions
-p_pick = 0.7
-p_wait = 0.02
+# waiting time will be geometric distributions
+p_wait = 0.01
 
 def gen_Pick():
-    x = np.random.geometric(p_pick) - 1
-    
+    # picking number will be triangular distribution between 0 and 1
+    x = np.random.triangular(0, 0, 1)
     return ("Pick", x)
     
 def gen_Wait():
+    # waiting time will be geometric distributions
     x = np.random.geometric(p_wait) - 1
-    
     return ("Wait", x)
 
 def gen_Genome(no_locos):
@@ -74,13 +75,13 @@ def fitness(s, genome, save=False):
    
    # extract KPIs
    feasible = s.feasible
-   latePercentage = s.latePercentage
+   latePercentage = s.latePercentage / s.latePerBaseline
    
-   return latePercentage if feasible else 10 # penalty for infeasible
+   return latePercentage if feasible else infPunishment # penalty for infeasible
 
 def normalize_fitness(fitnessArr):
     # normalize fitness array
-    maxFitness = max(fitnessArr)
+    maxFitness = max(fitnessArr, 1)
     f = []
     for fitness in fitnessArr:
         f.append(1 - fitness/maxFitness)
@@ -90,6 +91,10 @@ def normalize_fitness(fitnessArr):
 def selection_pair(population, fitnessArr):
     pop = deepcopy(population)
     fit = deepcopy(fitnessArr)
+    
+    for i, f in enumerate(fit):
+        fit[i] += 0.00001 # zero weights in choices, gives weird results
+        
     
     parent1 = choices(
                 population =    pop, 
@@ -134,7 +139,10 @@ def mutate(genome):
 # execution of GA
 # =============================================================================
 s = Simulation(pictures = False)
-population = gen_Population(1)
+population = gen_Population(len(s.Locomotives))
+
+# set simulation baseline
+s.setBaselines()
 
 # keep good solution
 recordScore = 1000
@@ -143,6 +151,7 @@ bestScores = []
 
 for generation in range(generations):
     print("--- GENERATION {} ---".format(generation))
+    print("current record: {}".format(recordScore))
     
     # determine fitness
     fitnessArr = []
@@ -175,6 +184,11 @@ for generation in range(generations):
     # set new generation as population
     population = newPopulation
     
+    # format best genome
+    bg = deepcopy(bestGenome)
+    bg = [(x[0][0], round(x[1], 2)) if x != None else None for x in bg]
+    print("Best Genome this generation:", bg)
+    
 # execute the best one one last time, with pictures enabled:
 print("Running record again ...")
-fitness(s, record, save=True)  
+fitness(s, record, save=True)
