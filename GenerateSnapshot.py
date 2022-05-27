@@ -41,13 +41,13 @@ def generate_TPs(Tasks):
     
     return Torpedoes
 
-def generate_Locos(DiG):
+def generate_Locos(L):
     #Locomotive locations:
-    Locomotives = [Loco.Locomotive("A", 157)]#,
-#                   Loco.Locomotive("B", 68)]#,
-#                   Loco.Locomotive("C", 147)]
+    Locomotives = [Loco.Locomotive("A", 157),
+                   Loco.Locomotive("B", 68),
+                   Loco.Locomotive("C", 147)]
     
-    return Locomotives
+    return Locomotives[:L]
     
     
 def set_TPlocation(G, df, Torpedoes):

@@ -10,6 +10,7 @@ import numpy as np
 import networkx as nx
 from datetime import datetime, timedelta
 import math
+import random
 
 import Torpedo as torp
 import Locomotive as Loco
@@ -19,7 +20,8 @@ from Visualise import plot_Graph2
 from ImportNetwork import import_network
 from GenerateRoutes import calc_Min_Traveltime
 
-from PARAMS import ph, ri, nD, nRy, nGA, nGB, StartTime, timestep
+from PARAMS import ph, ri, includeExtra
+from PARAMS import nD, nRy, nGA, nGB, nG, StartTime, timestep
 from PARAMS import connect_slots, D_config_slots
 from PARAMS import RyC_config_slots, RyC_init_speed_slots, RyC_speed_slots
 
@@ -39,7 +41,7 @@ def importTpData():
 # =============================================================================
 #   filter the dataframe:
 # =============================================================================
-    secondsToAdd = ph + ri
+    secondsToAdd = ph + ri + includeExtra
     End = Start + timedelta(seconds = secondsToAdd)
     
     df = df[(df['Tijdstip'] > str(Start)) & (df['Tijdstip'] < str(End))]
@@ -243,8 +245,17 @@ def generateTaskList(G, df):
                       "FixedTime": row["Pouring Time"]
                       })
         
-    Tasks = sorted(Tasks, key = lambda i: i['tp'])
+    # add movement to WZ for finished torpedoes
     usedTPs = sorted(list(df.Tp.unique()))
+    n = 0
+    for tp in usedTPs:
+        n = (n+1) % len(nG)
+        Tasks.append({"name": "-> WZ",
+                      "tp": tp,
+                      "CastingNode": nG[n]})
+    
+    Tasks = sorted(Tasks, key = lambda i: i['tp'])
+        
         
     # =============================================================================
     # Cascading Times

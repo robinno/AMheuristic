@@ -72,6 +72,7 @@ suppressOutput = True
 # Planning Horizon in seconds
 ph = 3 * 3600
 ri = 0  * 3600
+includeExtra = 0.5 * 3600
 
 H = round(ph / timestep)
 #H = 100 # testing
@@ -82,7 +83,7 @@ T = 0 # number of torpedoes => TESTING
 L = 0 # number of locomotives
 
 # where to pick the data
-StartTime = '2017-08-27 15:02:40'
+StartTime = '2017-09-27 15:02:40'
 
 # look ahead for conflict detection and resolution
 lookAhead = 15

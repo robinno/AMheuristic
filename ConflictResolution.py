@@ -17,16 +17,32 @@ from GenerateRoutes import convertToTProute, generate_route_RM
 def prepare_plan(vehicle, t):
     plan = deepcopy(vehicle.plan) if vehicle.plan != [] else [vehicle.location[t]]
     
-    # enlarge to fit length => ASSUMES no plan afterwards!
+    Nonepos = 10000
+    if None in plan:
+        Nonepos = plan.index(None)
+    
+    # remove things after None
+    rest = []
+    if None in plan:
+        newplan = plan[:plan.index(None)]
+        rest = plan[plan.index(None):]
+        plan = newplan
+    
+    if plan != []:
+        # enlarge to fit length => ASSUMES no plan afterwards!
+        while len(plan) < lookAhead: plan.append(plan[-1])
+    
+    return plan, rest, Nonepos
+    
+def beforeNone(plan):
+    if None in plan: plan = plan[:plan.index(None)]
     while len(plan) < lookAhead: plan.append(plan[-1])
-    
-    # cut to fit length
-#    plan = plan[:lookAhead]
-    
     return plan
-    
 
-def detect_Conflict(plan1, plan2, t, suppressOutput = False):    
+def detect_Conflict(plan1, plan2, t, suppressOutput = False):
+    if plan1 == [] or plan2 == []:
+        return -1
+    
     # detection:
     for i in range(1, lookAhead-1):
         
@@ -46,6 +62,7 @@ def detect_Conflict(plan1, plan2, t, suppressOutput = False):
     return -1 # no collision detected
         
 def determine_succ_vehicle(DiG, plan1, plan2, i):
+    
     # first case:
     if plan1[i] == plan2[i]:
         if plan1[i-1] in DiG.successors(plan2[i-1]):
@@ -80,7 +97,11 @@ def findAvNode(G, DiG, continuantPlan, node, avfrontload = 0, avbackload = 0):
     
     # determine direction and keep load
     path = list(nx.shortest_path(G, source=node, target=avNode))
-    if DiG.has_edge(path[0], path[1]):
+    
+    if len(path) <= 1:
+         # already at right node :) -> dont do anything
+         pass
+    elif DiG.has_edge(path[0], path[1]):
         # successor case => make sure backload further in plan, o.w. still on switch
         for i in range(avbackload): avNode = list(DiG.successors(avNode))[0]
     else:
@@ -108,6 +129,9 @@ def CASE1_gen_plans(G, DiG, continuantPlan, avoidingPlan, switch,
     
     elif DiG.has_edge(newContPlan[-2], newContPlan[-1]):
         successor = True
+        
+    if len(newContPlan) == 0:
+        print("problem: newcontplan == 0")
     
     waitingPositionContinuant = 2       
     if successor: # successor
@@ -115,7 +139,9 @@ def CASE1_gen_plans(G, DiG, continuantPlan, avoidingPlan, switch,
     else:
         waitingPositionContinuant += cbackload + avfrontload
         
-    newContPlan = newContPlan[:-waitingPositionContinuant]
+    offset = min(waitingPositionContinuant, len(newContPlan) - 1)
+    if offset > 0:
+        newContPlan = newContPlan[:-offset]
     
     # synchronization    
     while len(newAvPlan) < len(newContPlan): newAvPlan.append(newAvPlan[-1])
@@ -165,8 +191,10 @@ def CASE3_gen_plans(G, DiG, continuantPlan, avoidingPlan, switch,
     else:
         waitingPositionContinuant += cbackload + avfrontload
         
-    newContPlan = newContPlan[:-waitingPositionContinuant]
-    
+    offset = min(waitingPositionContinuant, len(newContPlan) - 1)
+    if offset > 0:
+        newContPlan = newContPlan[:-offset]
+        
     # synchronization    
     while len(newAvPlan) < len(newContPlan): newAvPlan.append(newAvPlan[-1])
     while len(newContPlan) < len(newAvPlan): newContPlan.append(newContPlan[-1])
@@ -178,7 +206,6 @@ def CASE3_gen_plans(G, DiG, continuantPlan, avoidingPlan, switch,
     newContPlan += generate_route_RM(G, DiG, newContPlan[-1], continuantPlan[-1])
     
     return newContPlan, newAvPlan  
-    
 
 def generate_plans(G, DiG, plan1, plan2, S1, S2, i, frontLoad1 = 0, backLoad1 = 0, frontLoad2 = 0, backLoad2 = 0):
     # determine closest switch => used for avoidance
@@ -192,8 +219,11 @@ def generate_plans(G, DiG, plan1, plan2, S1, S2, i, frontLoad1 = 0, backLoad1 = 
             avList1 = list(DiG.successors(currNode1)) if S1 else list(DiG.predecessors(currNode1))
             avList2 = list(DiG.successors(currNode2)) if S2 else list(DiG.predecessors(currNode2))
     
-            currNode1 = avList1[0]
-            currNode2 = avList2[0]
+            currNode1 = currNode1 if len(avList1) == 0 else avList1[0]
+            currNode2 = currNode2 if len(avList2) == 0 else avList2[0]
+            
+            if len(avList1) == 0 and len(avList2) == 0:
+                raise Exception("No aversion node!")
     
     else:
         # case 2 or 3
@@ -290,7 +320,7 @@ def set_plan_to_train(G, DiG, vehicle, plan, t):
                                             succVehicle = None, predVehicle = train[index - 1])
     
     
-def resolve_conflict(G, DiG, Loco1, Loco2, t):   
+def resolve_conflict(G, DiG, F, DiF, Loco1, Loco2, t):   
     train1 = get_train(Loco1)
     train2 = get_train(Loco2)
     
@@ -301,15 +331,18 @@ def resolve_conflict(G, DiG, Loco1, Loco2, t):
         vehicle2 = train2[0 if i == True else -1]
         front2 = not i
     
-        plan1 = prepare_plan(vehicle1, t)
-        plan2 = prepare_plan(vehicle2, t)
+        plan1, rest1, Nonepos1 = prepare_plan(vehicle1, t)
+        plan2, rest2, Nonepos2 = prepare_plan(vehicle2, t)
         
         timeOfCollision = detect_Conflict(plan1, plan2, t, suppressOutput = suppressOutput)
         
         if timeOfCollision == -1: # no collision detected:
             continue
+        elif i >= Nonepos1 or i >= Nonepos2:
+            continue
+            
     
-        S1, S2 = determine_succ_vehicle(DiG, plan1, plan2, timeOfCollision)
+        S1, S2 = determine_succ_vehicle(DiF, plan1, plan2, timeOfCollision)
         
         if not suppressOutput:
             print(front1, S1, " and ", front2, S2)
@@ -317,13 +350,16 @@ def resolve_conflict(G, DiG, Loco1, Loco2, t):
         if S1 != front1 or S2 != front2:            
     
             try:
-                newplan1, newplan2 = generate_plans(G, DiG, plan1, plan2, S1, S2, timeOfCollision,
+                newplan1, newplan2 = generate_plans(F, DiF, plan1, plan2, S1, S2, timeOfCollision,
                                                     frontLoad1 = Loco1.frontLoad(), backLoad1 = Loco1.backLoad(), 
                                                     frontLoad2 = Loco2.frontLoad(), backLoad2 = Loco2.backLoad())            
             except:
                 raise Exception("!!! Unable to resolve conflict!")
                 newplan1 = plan1
                 newplan2 = plan2
+                
+            newplan1 += rest1
+            newplan2 += rest2
                 
             set_plan_to_train(G, DiG, vehicle1, newplan1, t)
             set_plan_to_train(G, DiG, vehicle2, newplan2, t)

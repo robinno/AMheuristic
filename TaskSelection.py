@@ -101,7 +101,7 @@ def WZ_destNode_ifAllowed(Torpedoes, currTask, t, nodeList, castingNode = None):
 #            return None   
     return None
 
-def available_tasks(G, DiG, t, Loco, Torpedoes, storePic = True):
+def available_tasks(G, DiG, t, Loco, Torpedoes, prio = False, storePic = True):
     Current_movement_tasks = [tp.CurrentTask() for tp in Torpedoes 
                               if tp.CurrentTask() != None and "->" in tp.CurrentTask().name and tp.reserved == False]
     Filling_tasks = [task for tp in Torpedoes for task in tp.tasks if not task.finished and task.name == "Fill"]
@@ -110,117 +110,118 @@ def available_tasks(G, DiG, t, Loco, Torpedoes, storePic = True):
     for task in Current_movement_tasks:
         torpedoLocation, prioMvmt = [(tp.location[t], tp.prioMvmt) for tp in Torpedoes if tp.number == task.tp][0]
         
-        if task.name == "-> H":
+        if task.name == "-> H" or task.name == "-> WZ":
             # waiting positions
             
             # FIRST waiting position:
-#            if prioMvmt > 2 and torpedoLocation not in nWo:
-            if torpedoLocation not in nWo:
-                destNode = WZ_destNode_ifAllowed(Torpedoes, task, t, nWo)
-                if destNode != None:
-                    addIfValidTask(G, DiG, Tasklist, task, t, Loco, Torpedoes, torpedoLocation, destNode, prio = 2)
+            if not(prio) or (prioMvmt > 2 and torpedoLocation not in nWo):
+                if torpedoLocation not in nWo:
+                    destNode = WZ_destNode_ifAllowed(Torpedoes, task, t, nWo)
+                    if destNode != None:
+                        addIfValidTask(G, DiG, Tasklist, task, t, Loco, Torpedoes, torpedoLocation, destNode, prio = 2)
                 
             # SECOND waiting position:
-#            if prioMvmt > 1 and len(Filling_tasks) != 0:
-            if len(Filling_tasks) != 0:
-                CurrentCastingNode = Filling_tasks[0].castingNode
-                
-                WaitingZone = []
-                blockingNode = None
-                
-                if CurrentCastingNode in nGA1:
-                    WaitingZone = nWA1
-                    blockingNode = 61
-                elif CurrentCastingNode in nGA2:
-                    WaitingZone = nWA2
-                    blockingNode = 50
-                elif CurrentCastingNode in nGB1:
-                    WaitingZone = nWB1
-                    blockingNode = 90
-                else:
-                    WaitingZone = nWB2
-                    blockingNode = 81
+            if not(prio) or (prioMvmt > 1 and len(Filling_tasks) != 0):
+                if len(Filling_tasks) != 0:
+                    CurrentCastingNode = Filling_tasks[0].castingNode
                     
-                # filter out self movement:
-                if torpedoLocation not in WaitingZone:
-                    # Does the blocking hole have a torpedo on it currently?
-    #                if len([tp for tp in Torpedoes if tp.location[t] == blockingNode]) == 0:
-                        
-                    # find the next use of the blocking hole
-                    NextHoleUses = [task for task in Filling_tasks if task.castingNode == blockingNode]
-                    if len(NextHoleUses) == 0:
-                        # add task
-                        destNode = WZ_destNode_ifAllowed(Torpedoes, task, t, WaitingZone)
-                        if destNode != None:
-                            addIfValidTask(G, DiG, Tasklist, task, t, Loco, Torpedoes, torpedoLocation, destNode, prio = 1)
+                    WaitingZone = []
+                    blockingNode = None
+                    
+                    if CurrentCastingNode in nGA1:
+                        WaitingZone = nWA1
+                        blockingNode = 61
+                    elif CurrentCastingNode in nGA2:
+                        WaitingZone = nWA2
+                        blockingNode = 50
+                    elif CurrentCastingNode in nGB1:
+                        WaitingZone = nWB1
+                        blockingNode = 90
                     else:
-                        NextHoleUse = NextHoleUses[0]
-                        if not(task.LST != None and task.LST >= NextHoleUse.EST): # problem while blocking
+                        WaitingZone = nWB2
+                        blockingNode = 81
+                        
+                    # filter out self movement:
+                    if torpedoLocation not in WaitingZone:
+                        # Does the blocking hole have a torpedo on it currently?
+        #                if len([tp for tp in Torpedoes if tp.location[t] == blockingNode]) == 0:
+                            
+                        # find the next use of the blocking hole
+                        NextHoleUses = [task for task in Filling_tasks if task.castingNode == blockingNode]
+                        if len(NextHoleUses) == 0:
                             # add task
                             destNode = WZ_destNode_ifAllowed(Torpedoes, task, t, WaitingZone)
                             if destNode != None:
                                 addIfValidTask(G, DiG, Tasklist, task, t, Loco, Torpedoes, torpedoLocation, destNode, prio = 1)
+                        else:
+                            NextHoleUse = NextHoleUses[0]
+                            if not(task.LST != None and task.LST >= NextHoleUse.EST): # problem while blocking
+                                # add task
+                                destNode = WZ_destNode_ifAllowed(Torpedoes, task, t, WaitingZone)
+                                if destNode != None:
+                                    addIfValidTask(G, DiG, Tasklist, task, t, Loco, Torpedoes, torpedoLocation, destNode, prio = 1)
 
-            # normal path
-            destNode = task.castingNode
-            if destNode in [tp.location[t] for tp in Torpedoes]: #node is in use
-                continue 
+            if task.name == "-> H":
+                # normal path
+                destNode = task.castingNode
+                if destNode in [tp.location[t] for tp in Torpedoes]: #node is in use
+                    continue 
             
-            addIfValidTask(G, DiG, Tasklist, task, t, Loco, Torpedoes, torpedoLocation, destNode, prio = 0)
+                addIfValidTask(G, DiG, Tasklist, task, t, Loco, Torpedoes, torpedoLocation, destNode, prio = 0)
                 
         elif task.name == "-> D":
             # waiting positions
             
             # FIRST waiting position:
-#            if prioMvmt > 2 and torpedoLocation not in nWo:
-            if torpedoLocation not in nWo:
-                destNode = WZ_destNode_ifAllowed(Torpedoes, task, t, nWo)
-                if destNode != None:
-                    addIfValidTask(G, DiG, Tasklist, task, t, Loco, Torpedoes, torpedoLocation, destNode, prio = 2)
+            if not(prio) or (prioMvmt > 2 and torpedoLocation not in nWo):
+                if torpedoLocation not in nWo:
+                    destNode = WZ_destNode_ifAllowed(Torpedoes, task, t, nWo)
+                    if destNode != None:
+                        addIfValidTask(G, DiG, Tasklist, task, t, Loco, Torpedoes, torpedoLocation, destNode, prio = 2)
                 
             # SECOND waiting position:
-#            if prioMvmt > 1 and len(Filling_tasks) != 0:
-            if len(Filling_tasks) != 0:
-                CurrentCastingNode = Filling_tasks[0].castingNode
-                
-                WaitingZone = []
-                blockingNode = None
-                
-                if CurrentCastingNode in nGA1:
-                    WaitingZone = nFA1
-                    blockingNode = 56
-                elif CurrentCastingNode in nGA2:
-                    WaitingZone = nFA2
-                    blockingNode = 44
-                elif CurrentCastingNode in nGB1:
-                    WaitingZone = nFB1
-                    blockingNode = 86
-                else:
-                    WaitingZone = nFB2
-                    blockingNode = 75
+            if not(prio) or (prioMvmt > 1 and len(Filling_tasks) != 0):
+                if len(Filling_tasks) != 0:
+                    CurrentCastingNode = Filling_tasks[0].castingNode
                     
-                # filter out self movement:
-                if torpedoLocation not in WaitingZone:
+                    WaitingZone = []
+                    blockingNode = None
                     
-                    # Does the blocking hole have a torpedo on it currently?
-#                    if len([tp for tp in Torpedoes if tp.location[t] == blockingNode]) == 0:
-                        
-                    # find the next use of the blocking hole
-                    NextHoleUses = [task for task in Filling_tasks if task.castingNode == blockingNode]
-                    if len(NextHoleUses) == 0:
-                    
-                        # add task
-                        destNode = WZ_destNode_ifAllowed(Torpedoes, task, t, WaitingZone)
-                        if destNode != None:
-                            addIfValidTask(G, DiG, Tasklist, task, t, Loco, Torpedoes, torpedoLocation, destNode, prio = 1)
+                    if CurrentCastingNode in nGA1:
+                        WaitingZone = nFA1
+                        blockingNode = 56
+                    elif CurrentCastingNode in nGA2:
+                        WaitingZone = nFA2
+                        blockingNode = 44
+                    elif CurrentCastingNode in nGB1:
+                        WaitingZone = nFB1
+                        blockingNode = 86
                     else:
-                        NextHoleUse = NextHoleUses[0]
-                        if not(task.LST != None and task.LST >= NextHoleUse.EST): # problem while blocking
+                        WaitingZone = nFB2
+                        blockingNode = 75
+                        
+                    # filter out self movement:
+                    if torpedoLocation not in WaitingZone:
+                        
+                        # Does the blocking hole have a torpedo on it currently?
+    #                    if len([tp for tp in Torpedoes if tp.location[t] == blockingNode]) == 0:
+                            
+                        # find the next use of the blocking hole
+                        NextHoleUses = [task for task in Filling_tasks if task.castingNode == blockingNode]
+                        if len(NextHoleUses) == 0:
                         
                             # add task
                             destNode = WZ_destNode_ifAllowed(Torpedoes, task, t, WaitingZone)
                             if destNode != None:
                                 addIfValidTask(G, DiG, Tasklist, task, t, Loco, Torpedoes, torpedoLocation, destNode, prio = 1)
+                        else:
+                            NextHoleUse = NextHoleUses[0]
+                            if not(task.LST != None and task.LST >= NextHoleUse.EST): # problem while blocking
+                            
+                                # add task
+                                destNode = WZ_destNode_ifAllowed(Torpedoes, task, t, WaitingZone)
+                                if destNode != None:
+                                    addIfValidTask(G, DiG, Tasklist, task, t, Loco, Torpedoes, torpedoLocation, destNode, prio = 1)
 
             # normal path
             for destNode in nD:
@@ -234,10 +235,11 @@ def available_tasks(G, DiG, t, Loco, Torpedoes, storePic = True):
                 if destNode in [tp.location[t] for tp in Torpedoes]: #node is in use
                     continue
                 
-                addIfValidTask(G, DiG, Tasklist, task, t, Loco, Torpedoes, torpedoLocation, destNode) 
+                addIfValidTask(G, DiG, Tasklist, task, t, Loco, Torpedoes, torpedoLocation, destNode)
     
     if len(Tasklist) > 0 and storePic == True:
         plot_Graph2(G, t, Torpedoes, [Loco], save=True, dpi = 100, saveLoc = "keyMoments/")
+    
     
     # Sort the tasklist:
     
@@ -248,8 +250,8 @@ def available_tasks(G, DiG, t, Loco, Torpedoes, storePic = True):
     
     return Tasklist
 
-def pick_EDD(G, DiG, t, Loco, Torpedoes, storePic = True):    #select earliest due date 
-    AvTasks = available_tasks(G, DiG, t, Loco, Torpedoes, storePic = storePic)
+def pick_EDD(G, DiG, t, Loco, Torpedoes, prio = False, storePic = True):    #select earliest due date 
+    AvTasks = available_tasks(G, DiG, t, Loco, Torpedoes, prio = prio, storePic = storePic)
 
     if len(AvTasks) > 0:
 #        print("Loco selecting task at time {}\t -> available tasks: {}".format(t, len(AvTasks)))
@@ -259,22 +261,29 @@ def pick_EDD(G, DiG, t, Loco, Torpedoes, storePic = True):    #select earliest d
         #already sorted
         return AvTasks[0] # pick most urgent task
 
-def pick_Age(G, DiG, t, Loco, Torpedoes, storePic = True):  # select the oldest task
-    AvTasks = available_tasks(G, DiG, t, Loco, Torpedoes, storePic = storePic)
+def pick_Age(G, DiG, t, Loco, Torpedoes, prio = False, storePic = True):  # select the oldest task
+    AvTasks = available_tasks(G, DiG, t, Loco, Torpedoes, prio = prio, storePic = storePic)
     if len(AvTasks) > 0:
         # sort on age
         AvTasks = sorted(AvTasks, key = lambda i: i[0].age)
         return AvTasks[0]
     
-def pick_Closest(G, DiG, t, Loco, Torpedoes, storePic = True): # select the closest task
-    AvTasks = available_tasks(G, DiG, t, Loco, Torpedoes, storePic = storePic)
+def pick_Closest(G, DiG, t, Loco, Torpedoes, prio = False, storePic = True): # select the closest task
+    AvTasks = available_tasks(G, DiG, t, Loco, Torpedoes, prio = prio, storePic = storePic)
     if len(AvTasks) > 0:
         # sort on distance of picking
+        AvTasks = sorted(AvTasks, key = lambda i: len(i[1]))
+        return AvTasks[0]
+    
+def pick_minDist(G, DiG, t, Loco, Torpedoes, prio = False, storePic = True): # select the minimimum dist task
+    AvTasks = available_tasks(G, DiG, t, Loco, Torpedoes, prio = prio, storePic = storePic)
+    if len(AvTasks) > 0:
+        # sort on total distance
         AvTasks = sorted(AvTasks, key = lambda i: len(i[1]) + len(i[2]))
         return AvTasks[0]
     
-def pick(G, DiG, t, Loco, Torpedoes, strat, storePic = True):    
-    AvTasks = available_tasks(G, DiG, t, Loco, Torpedoes, storePic = storePic)
+def pick(G, DiG, t, Loco, Torpedoes, strat, prio = False, storePic = True):    
+    AvTasks = available_tasks(G, DiG, t, Loco, Torpedoes, prio = prio, storePic = storePic)
     if len(AvTasks) > 0:
         index = math.floor(strat * len(AvTasks))
         return AvTasks[index] # pick the number selected.

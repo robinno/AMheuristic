@@ -14,9 +14,9 @@ from PARAMS import stratLength, suppressOutput
 from Simulate import Simulation
 
 # GA params
-popSize = 20
+popSize = 10
 mutProb = 0.05
-generations = 50
+generations = 10
 
 infPunishment = 1.5
 
@@ -26,9 +26,12 @@ prob_pick = 0.5
 # waiting time will be geometric distributions
 p_wait = 0.01
 
-def gen_Pick():
-    # picking number will be triangular distribution between 0 and 1
-    x = np.random.triangular(0, 0, 1)
+def gen_Pick(distr = "Uniform"):
+    if distr == "Traingular":
+        # picking number will be triangular distribution between 0 and 1
+        x = np.random.triangular(0, 0, 1)
+    else:
+        x = np.random.uniform(0,1)
     return ("Pick", x)
     
 def gen_Wait():
@@ -71,7 +74,7 @@ def fitness(s, genome, save=False):
    for i, l in enumerate(s.Locomotives):
        l.strategy = Loco_Strat[i]
    
-   s.run(keyMomentsPlot = save, gif = save, ExcelOutput = save)
+   s.run(keyMomentsPlot = save, gif = False, ExcelOutput = save)
    
    # extract KPIs
    feasible = s.feasible
@@ -81,7 +84,7 @@ def fitness(s, genome, save=False):
 
 def normalize_fitness(fitnessArr):
     # normalize fitness array
-    maxFitness = max(fitnessArr, 1)
+    maxFitness = max(max(fitnessArr), 1)
     f = []
     for fitness in fitnessArr:
         f.append(1 - fitness/maxFitness)
@@ -142,7 +145,7 @@ s = Simulation(pictures = False)
 population = gen_Population(len(s.Locomotives))
 
 # set simulation baseline
-s.setBaselines()
+#s.setBaselines()
 
 # keep good solution
 recordScore = 1000

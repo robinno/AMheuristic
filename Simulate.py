@@ -14,6 +14,7 @@ from itertools import combinations
 from copy import deepcopy
 
 from PARAMS import H, run_in, suppressOutput
+import PARAMS
 
 from ImportNetwork import import_network
 from GenerateSnapshot import generate_TPs, generate_Locos, set_TPlocation
@@ -22,7 +23,7 @@ from Visualise import generate_GIF2
 from ConflictResolution import resolve_conflict
 
 class Simulation:
-    def __init__(self, pictures = True):
+    def __init__(self, L = 3, pictures = True):
         if pictures:
             # clear plot folders:
             files = glob.glob('keyMoments/*.png')
@@ -42,12 +43,15 @@ class Simulation:
 
         self.Torpedoes = generate_TPs(self.Tasks)
         set_TPlocation(self.DiG, self.df, self.Torpedoes)
-        self.Locomotives = generate_Locos(self.DiG)
+        self.Locomotives = generate_Locos(L)
 
         # KPIs
-        self.latePerBaseline = None
+        self.latePerBaseline = 1
+        
         self.latePercentage = None
         self.feasible = True
+        self.tasksFinished = 0
+        self.LocoIdling = 0
         
     def setBaselines(self):
         print("Setting KPI baselines ...")
@@ -73,8 +77,10 @@ class Simulation:
 
         self.latePercentage = None
         self.feasible = True
+        self.tasksFinished = 0
+        self.LocoIdling = 0
 
-    def run(self, strategy = "strategic", keyMomentsPlot = False, gif = False, ExcelOutput = False):
+    def run(self, strategy = "strategic", prio = False, keyMomentsPlot = False, gif = False, ExcelOutput = False):
 
         #interpretation
         info = []
@@ -91,6 +97,7 @@ class Simulation:
 
         #KPI
         latecounter = 0
+        idlingcounter = 0
 
         try:
             if not suppressOutput:
@@ -108,34 +115,48 @@ class Simulation:
                 for tp in self.Torpedoes:
                     tp.update(t)
                 for l in self.Locomotives:
-                    l.update(self.G, self.DiG, t, self.Torpedoes, picking = strategy, storePic = keyMomentsPlot)
+                    l.update(self.G, self.DiG, t, self.Torpedoes, picking = strategy, prio = prio, storePic = keyMomentsPlot)
 
                 F = self.G.copy()
                 DiF = self.DiG.copy()
                 for node in [tp.location[t] for tp in self.Torpedoes if tp.Locomotive == None]:
-                    F.remove_node(node)
-                    DiF.remove_node(node)
+#                    if node == 93:
+#                        continue # blijft problemen geven
+                    
+                    if node in F:
+                        F.remove_node(node)
+                    if node in DiF:
+                        DiF.remove_node(node)
 
                 Loco_pairs = list(combinations(self.Locomotives, 2))
                 for pair in Loco_pairs:
 #                    print(t, pair[0].name, pair[1].name)
-                    resolve_conflict(F, DiF, pair[0], pair[1], t)
+                    resolve_conflict(self.G, self.DiG, F, DiF, pair[0], pair[1], t)
 
                 """ KPIs """
+                # lateness at casting node
                 CurrentFillTasks = []
                 for tp in self.Torpedoes:
                     for task in tp.tasks:
                         if task.name == "Fill" and t > task.EST and t < task.EFT:
                             CurrentFillTasks.append(task)
 
+#                notAtCastingNode = False
                 for task in CurrentFillTasks:
                     tp = [i for i in self.Torpedoes if task.tp == i.number][0]
                     if tp.location[t] != task.castingNode:
                         row["TP at castNode"] = False
+#                        notAtCastingNode = True
                         latecounter += 1
                     else:
                         row["TP at castNode"] = True
-
+                        
+#                latecounter += notAtCastingNode
+                        
+                # locos idling
+                for l in self.Locomotives:
+                    if l.state == "Waiting":
+                        idlingcounter += 1
 
                 """ interpretation """
                 for l in self.Locomotives:
@@ -153,9 +174,18 @@ class Simulation:
 
         finally:
             # calculate KPI's
-            self.latePercentage = latecounter / (2*(H+run_in))
+            self.latePercentage = latecounter / (H+run_in)
+            self.LocoIdling = idlingcounter / ((H + run_in) * len(self.Locomotives))
+            
+            self.tasksFinished = 0
+            for tp in self.Torpedoes:
+                for t in tp.tasks:
+                    self.tasksFinished += int(t.finished)
+            
             # print KPI's
             print("Number of timeslots TP too late (both HOO): {} => perc: {:.2%}".format(latecounter, self.latePercentage / self.latePerBaseline if self.latePerBaseline != None else self.latePercentage))
+            print("Tasks finished: {}".format(self.tasksFinished))
+            print("Mean loco idling time: {:.2%}".format(self.LocoIdling))
 
             #interpret
             tasks = []
@@ -176,8 +206,8 @@ class Simulation:
             if gif:
                 generate_GIF2(self.G, self.Locomotives, self.Torpedoes, dpi=100)
 
-s = Simulation(pictures = True)
-s.reset()
-s.run(strategy = "EDD", keyMomentsPlot = True, gif = False, ExcelOutput = True)
-print("simulation run: Feasible={}, LatePercentage={}".format(s.feasible, s.latePercentage))
+#s = Simulation(L = 2, pictures = False)
+#s.reset()
+#s.run(strategy = "EDD", prio = False, keyMomentsPlot = False, gif = False, ExcelOutput = True)
+#print("simulation run: Feasible={}, LatePercentage={:.2%}, Tasks finished= {}, Mean loco idling time= {:.2%}".format(s.feasible, s.latePercentage, s.tasksFinished, s.LocoIdling))
 

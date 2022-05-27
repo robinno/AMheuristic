@@ -134,11 +134,15 @@ def generate_route(G, DiG, start, finish, frontLoad = 0, backLoad = 0):
             if FtoBchange:        
                 for j in range(backLoad + 1):
 #                    print("Problem with backload ? : ", backLoad, DivertNode)
-                    DivertNode = list(DiG.successors(DivertNode))[0]
+                    lijst = list(DiG.successors(DivertNode))
+                    if lijst != []:
+                        DivertNode = lijst[0]
                     
             elif BtoFchange:
                 for j in range(frontLoad + 1):
-                    DivertNode = list(DiG.predecessors(DivertNode))[0]
+                    lijst = list(DiG.predecessors(DivertNode))
+                    if lijst != []:
+                        DivertNode = lijst[0]
                     
             if FtoBchange or BtoFchange:
                 # add the diversion:            
@@ -161,8 +165,10 @@ def generate_route_RM(G, DiG, start, finish, frontLoad = 0, backLoad = 0, RMnode
     DiH = DiG.copy()
         
     for node in RMnodes:
-        H.remove_node(node)
-        DiH.remove_node(node)
+        if node in H:
+            H.remove_node(node)
+        if node in DiH:
+            DiH.remove_node(node)
             
     return generate_route(H, DiH, start, finish, frontLoad = frontLoad, backLoad = backLoad)
 
@@ -183,7 +189,13 @@ def convertToTProute(G, DiG, t, vLoc, succVehicle = None, predVehicle = None):
                 
             candidates = [i for i in nextNodeList if i in neighbors]
             
-            n = nextNodeList[0]
+            if len(nextNodeList) == 0:
+                # special error, not catched right now
+                print("problem: no node for TProute!")
+                print("using current placement")
+                n = node
+            else:
+                n = nextNodeList[0]
             
             if len(nextNodeList) > 1: # special case
                 for n_candidate in candidates:

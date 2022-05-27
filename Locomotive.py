@@ -7,7 +7,7 @@ Created on Wed Apr 27 16:46:36 2022
 
 from PARAMS import H, run_in, Allowed_Connections, connect_slots, stratLength, suppressOutput
 from GenerateRoutes import convertToTProute
-from TaskSelection import pick, pick_EDD, pick_Age, pick_Closest
+from TaskSelection import pick, pick_EDD, pick_Age, pick_Closest, pick_minDist
 
 class Locomotive:    
     def __init__(self, name, location):        
@@ -65,7 +65,7 @@ class Locomotive:
         
         self.stratIndex = 0
         
-    def update(self, G, DiG, t, Torpedoes, picking = "strategic", storePic = True):
+    def update(self, G, DiG, t, Torpedoes, picking = "strategic", prio = False, storePic = True):
         
         self.location[t] = self.location[t-1]
         
@@ -92,7 +92,7 @@ class Locomotive:
                     # execute current strategy
                     if strat == "Pick":
                         # pick a new task
-                        taskPack = pick(G, DiG, t, self, Torpedoes, number, storePic = storePic)
+                        taskPack = pick(G, DiG, t, self, Torpedoes, number, prio = prio, storePic = storePic)
                         
                         if(taskPack) != None:
                             self.task, self.plan, self.DeliverPath, self.prioMvmt,  destNode = taskPack
@@ -115,11 +115,13 @@ class Locomotive:
                     taskPack = None
                     
                     if picking == "EDD":
-                        taskPack = pick_EDD(G, DiG, t, self, Torpedoes, storePic = storePic)
+                        taskPack = pick_EDD(G, DiG, t, self, Torpedoes, prio = prio, storePic = storePic)
                     elif picking == "age":
-                        taskPack = pick_Age(G, DiG, t, self, Torpedoes, storePic = storePic)
+                        taskPack = pick_Age(G, DiG, t, self, Torpedoes, prio = prio, storePic = storePic)
                     elif picking == "closest":
-                        taskPack = pick_Closest(G, DiG, t, self, Torpedoes, storePic = storePic)
+                        taskPack = pick_Closest(G, DiG, t, self, Torpedoes, prio = prio, storePic = storePic)
+                    elif picking == "minDist":
+                        taskPack = pick_minDist(G, DiG, t, self, Torpedoes, prio = prio, storePic = storePic)
                     else:
                         raise Exception("Unknown strategy")
                     
@@ -167,9 +169,9 @@ class Locomotive:
                     torpedo.plan = convertToTProute(G, DiG, t, torpedo.location[t-1], succVehicle = None, predVehicle = self)
                     torpedo.prioMvmt = self.prioMvmt
                 else:
-                    raise print("!! Problem: no torpedo next to loco !!")
-                    self.state = "Disconnect"
+#                    self.state = "Disconnect"
 #                    self.front_connected[0] = torpedo
+                    raise Exception("!! Problem: no torpedo next to loco !!")
         
         elif self.state == "Deliver":
             if len(self.plan) > 0:

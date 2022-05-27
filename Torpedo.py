@@ -108,6 +108,9 @@ class Torpedo:
                 elif task.name == "-> Ry":
                     if self.location[t-1] in nRy:
                         self.TaskFinished(t)
+                elif task.name == "-> WZ":
+                    # never finish
+                    pass
                 
             elif task.name == "Configure D" or task.name == "Desulphur":
                 if self.location[t-1] in nD:
