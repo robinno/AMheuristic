@@ -20,17 +20,18 @@ from Visualise import plot_Graph2
 from ImportNetwork import import_network
 from GenerateRoutes import calc_Min_Traveltime
 
+import PARAMS
 from PARAMS import ph, ri, includeExtra
-from PARAMS import nD, nRy, nGA, nGB, nG, StartTime, timestep
+from PARAMS import nD, nRy, nGA, nGB, nG, timestep
 from PARAMS import connect_slots, D_config_slots
 from PARAMS import RyC_config_slots, RyC_init_speed_slots, RyC_speed_slots
 
-def importTpData():
+def importTpData(startTime = '2017-09-27 15:02:40'):
 
     filepath = r'torpedoData.xlsx'
     
     # convert StartTime
-    Start = datetime.strptime(StartTime, '%Y-%m-%d %H:%M:%S')
+    Start = datetime.strptime(startTime, '%Y-%m-%d %H:%M:%S')
     
     # import dataframe
     df = pd.read_excel(filepath)

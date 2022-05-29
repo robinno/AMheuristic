@@ -19,17 +19,17 @@ nGA = nGA1+nGA2
 nG = nGA + nGB
 
 #Waiting nodes:
-nWB1 = [127,92,91]
-nFB1 = [126]
-nWB2 = [125, 124, 82]
-nFB2 = [130]
+nWB1 = [92,91]
+nFB1 = [87]
+nWB2 = [124, 82, 123]
+nFB2 = [76]
 
 nWB = nWB1+nFB1+nWB2+nFB2
 
-nWA1 = [105,63,101]
+nWA1 = [63, 101, 62]
 nFA1 = [104]
-nWA2 = [103, 51, 99]
-nFA2 = [102]
+nWA2 = [46, 98, 45]
+nFA2 = [99]
 
 nWA = nWA1+nFA1+nWA2+nFA2
 
@@ -70,9 +70,9 @@ RyC_speed_slots = RyC_speed * timestep # in tons/timeslot
 suppressOutput = True
 
 # Planning Horizon in seconds
-ph = 3 * 3600
+ph = 4 * 3600
 ri = 0  * 3600
-includeExtra = 0.5 * 3600
+includeExtra = 0 * 3600
 
 H = round(ph / timestep)
 #H = 100 # testing
@@ -83,10 +83,10 @@ T = 0 # number of torpedoes => TESTING
 L = 0 # number of locomotives
 
 # where to pick the data
-StartTime = '2017-09-27 15:02:40'
+#StartTime = '2017-09-27 15:02:40'
 
 # look ahead for conflict detection and resolution
-lookAhead = 15
+lookAhead = 20
 
 # strategyLength
 stratLength = 30

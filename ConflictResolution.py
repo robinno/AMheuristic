@@ -100,6 +100,7 @@ def findAvNode(G, DiG, continuantPlan, node, avfrontload = 0, avbackload = 0):
     
     if len(path) <= 1:
          # already at right node :) -> dont do anything
+         raise Exception("Already at right node?")
          pass
     elif DiG.has_edge(path[0], path[1]):
         # successor case => make sure backload further in plan, o.w. still on switch
@@ -330,9 +331,35 @@ def resolve_conflict(G, DiG, F, DiF, Loco1, Loco2, t):
     
         vehicle2 = train2[0 if i == True else -1]
         front2 = not i
-    
+        
+        # swap vehicle if necessary:
+        if vehicle1.plan != [] and vehicle2.plan == []:
+            temp = vehicle1
+            vehicle1 = vehicle2
+            vehicle2 = temp
+        
+        # Check for errors:
+        v1End = None
+        if vehicle1.plan != []:
+            v1End = vehicle1.plan[-1]
+        
+        v2End = None
+        if vehicle2.plan != []:
+            v2End = vehicle2.plan[-1]
+                
+        # prepare plans
         plan1, rest1, Nonepos1 = prepare_plan(vehicle1, t)
         plan2, rest2, Nonepos2 = prepare_plan(vehicle2, t)
+        
+        
+        # Check for errors:
+#        v1End = None
+#        if len(set(plan1)) > 1:
+#            v1End = plan1[-1]
+#        
+#        v2End = None
+#        if len(set(plan2)) > 1:
+#            v2End = plan2[-1]
         
         timeOfCollision = detect_Conflict(plan1, plan2, t, suppressOutput = suppressOutput)
         
@@ -361,15 +388,20 @@ def resolve_conflict(G, DiG, F, DiF, Loco1, Loco2, t):
             newplan1 += rest1
             newplan2 += rest2
                 
+            
+            # check for errors:
+            if (newplan1[-1] != v1End and v1End != None) or (newplan2[-1] != v2End and v2End != None):
+                raise Exception("Ending node changed!")
+                        
             set_plan_to_train(G, DiG, vehicle1, newplan1, t)
             set_plan_to_train(G, DiG, vehicle2, newplan2, t)
-            
+                        
             break
     
     
 """ TEST CASES """
-#DiG = import_network()
-#G = DiG.to_undirected()
+DiG = import_network()
+G = DiG.to_undirected()
 #    
 ## first case:
 #Loco1 = Locomotive("A", 36)
@@ -381,9 +413,9 @@ def resolve_conflict(G, DiG, F, DiF, Loco1, Loco2, t):
 #Loco1.state = "Pickup"
 #Loco2.state = "Pickup"
 #
-#resolve_conflict(G, DiG, Loco1, Loco2, 0)
+#resolve_conflict(G, DiG, G, DiG, Loco1, Loco2, 0)
 #
-## second case:
+# second case:
 #Loco1 = Locomotive("A", 168)
 #Loco2 = Locomotive("B", 72)
 #    
@@ -393,9 +425,9 @@ def resolve_conflict(G, DiG, F, DiF, Loco1, Loco2, t):
 #Loco1.state = "Pickup"
 #Loco2.state = "Pickup"
 #
-#resolve_conflict(G, DiG, Loco1, Loco2, 0)
+#resolve_conflict(G, DiG, G, DiG, Loco1, Loco2, 0)
 #
-## third case:
+# third case:
 #DiG.remove_node(167)
 #G = DiG.to_undirected()
 #
@@ -408,4 +440,17 @@ def resolve_conflict(G, DiG, F, DiF, Loco1, Loco2, t):
 #Loco1.state = "Pickup"
 #Loco2.state = "Pickup"
 #
-#resolve_conflict(G, DiG, Loco1, Loco2, 0)
+#resolve_conflict(G, DiG, G, DiG, Loco1, Loco2, 0)
+
+# extra test case 2
+#Loco1 = Locomotive("A", 71)
+#Loco2 = Locomotive("B", 157)
+#    
+#Loco1.plan = [71, 131, 93, 128, 95, 77, 95, 130, 96, 94, 133, 36, 41, 40, 35, 0, 33, 156, 157, 23]
+#Loco2.plan = []
+#
+#Loco1.state = "Pickup"
+#Loco2.state = "Pickup"
+#
+#resolve_conflict(G, DiG, G, DiG, Loco1, Loco2, 0)
+

@@ -23,7 +23,7 @@ from Visualise import generate_GIF2
 from ConflictResolution import resolve_conflict
 
 class Simulation:
-    def __init__(self, L = 3, pictures = True):
+    def __init__(self, startTime = '2017-09-27 15:02:40', L = 3, pictures = True):
         if pictures:
             # clear plot folders:
             files = glob.glob('keyMoments/*.png')
@@ -38,7 +38,7 @@ class Simulation:
         self.DiG = import_network()
         self.G = self.DiG.to_undirected()
 
-        self.df = importTpData()
+        self.df = importTpData(startTime)
         self.Tasks = generateTaskList(self.G, self.df)
 
         self.Torpedoes = generate_TPs(self.Tasks)
@@ -130,8 +130,13 @@ class Simulation:
 
                 Loco_pairs = list(combinations(self.Locomotives, 2))
                 for pair in Loco_pairs:
-#                    print(t, pair[0].name, pair[1].name)
-                    resolve_conflict(self.G, self.DiG, F, DiF, pair[0], pair[1], t)
+                    loco1 = pair[0]
+                    loco2 = pair[1]
+                    
+#                    if loco1.state == "Connect" or loco1.state == "Disconnect" or loco2.state == "Connect" or loco2.state == "Disconnect":
+#                        continue
+                    
+                    resolve_conflict(self.G, self.DiG, F, DiF, loco1, loco2, t)
 
                 """ KPIs """
                 # lateness at casting node
@@ -174,7 +179,7 @@ class Simulation:
 
         finally:
             # calculate KPI's
-            self.latePercentage = latecounter / (H+run_in)
+            self.latePercentage = latecounter / ((H+run_in)*2)
             self.LocoIdling = idlingcounter / ((H + run_in) * len(self.Locomotives))
             
             self.tasksFinished = 0
@@ -195,8 +200,15 @@ class Simulation:
                                   "tp": task.tp,
                                   "Finished": task.finished,
                                   "Finish Time": task.finishTime,
-                                  "Age": task.age})
+                                  "Age": task.age,
+                                  "Casting node": task.castingNode,
+                                  "EST": task.EST,
+                                  "LST": task.LST,
+                                  "EFT": task.EFT,
+                                  "LFT": task.LFT})
             if ExcelOutput:
+                df = self.df
+                
                 infoDF = pd.DataFrame(info)
                 infoDF.to_excel(r'Output Locations.xlsx', index = False)
                 
@@ -204,10 +216,10 @@ class Simulation:
                 TasksDF.to_excel(r'Task states.xlsx', index = False)
 
             if gif:
-                generate_GIF2(self.G, self.Locomotives, self.Torpedoes, dpi=100)
+                generate_GIF2(self.G, self.Locomotives, self.Torpedoes, start = 150, end = 240, dpi=100)
 
-#s = Simulation(L = 2, pictures = False)
+#s = Simulation(startTime = '2017-09-30 23:02:40', L = 2, pictures = True)
 #s.reset()
-#s.run(strategy = "EDD", prio = False, keyMomentsPlot = False, gif = False, ExcelOutput = True)
+#s.run(strategy = "Hfirst", prio = False, keyMomentsPlot = True, gif = False, ExcelOutput = True)
 #print("simulation run: Feasible={}, LatePercentage={:.2%}, Tasks finished= {}, Mean loco idling time= {:.2%}".format(s.feasible, s.latePercentage, s.tasksFinished, s.LocoIdling))
 

@@ -7,7 +7,7 @@ Created on Wed Apr 27 16:46:36 2022
 
 from PARAMS import H, run_in, Allowed_Connections, connect_slots, stratLength, suppressOutput
 from GenerateRoutes import convertToTProute
-from TaskSelection import pick, pick_EDD, pick_Age, pick_Closest, pick_minDist
+from TaskSelection import pick, pick_EDD, pick_Age, pick_Closest, pick_minDist, pick_Hfirst
 
 class Locomotive:    
     def __init__(self, name, location):        
@@ -122,6 +122,8 @@ class Locomotive:
                         taskPack = pick_Closest(G, DiG, t, self, Torpedoes, prio = prio, storePic = storePic)
                     elif picking == "minDist":
                         taskPack = pick_minDist(G, DiG, t, self, Torpedoes, prio = prio, storePic = storePic)
+                    elif picking == "Hfirst":
+                        taskPack = pick_Hfirst(G, DiG, t, self, Torpedoes, prio = prio, storePic = storePic)
                     else:
                         raise Exception("Unknown strategy")
                     
@@ -145,11 +147,14 @@ class Locomotive:
                     self.state = "Connect"
                     self.connectionCounter = connect_slots
             else:
-                self.state = "Connect"
-                self.connectionCounter = connect_slots
+                torpedo = [i for i in Torpedoes if i.number == self.task.tp][0]
+                if self.location[t] in list(G.neighbors(torpedo.location[t-1])):
+                    self.state = "Connect"
+                    self.connectionCounter = connect_slots
+                else:
+                    raise Exception("Pickup plan finished but not next to TP")
         
         elif self.state == "Connect":
-            
             if(self.connectionCounter > 0):
                 self.connectionCounter -= 1 
             else:
@@ -169,8 +174,6 @@ class Locomotive:
                     torpedo.plan = convertToTProute(G, DiG, t, torpedo.location[t-1], succVehicle = None, predVehicle = self)
                     torpedo.prioMvmt = self.prioMvmt
                 else:
-#                    self.state = "Disconnect"
-#                    self.front_connected[0] = torpedo
                     raise Exception("!! Problem: no torpedo next to loco !!")
         
         elif self.state == "Deliver":
@@ -195,12 +198,13 @@ class Locomotive:
                 if len(self.plan) > 0:
                     # still a pickup action to do!
                     self.state = "Pickup"
+                    torpedo.reserved = True # still reserved!!
                 else:
                     self.state = "Waiting"
                     self.task = None
+                    torpedo.reserved = False
                 
                 torpedo.Locomotive = None
-                torpedo.reserved = False
                 torpedo.destNode = None
                 self.back_connected[0] = None
                 self.front_connected[0] = None

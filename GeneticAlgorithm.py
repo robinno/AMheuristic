@@ -14,19 +14,19 @@ from PARAMS import stratLength, suppressOutput
 from Simulate import Simulation
 
 # GA params
-popSize = 10
+popSize = 50
 mutProb = 0.05
-generations = 10
+generations = 15
 
 infPunishment = 1.5
 
 # probability picking or waiting
-prob_pick = 0.5
+prob_pick = 0.8
 
 # waiting time will be geometric distributions
-p_wait = 0.01
+p_wait = 0.1
 
-def gen_Pick(distr = "Uniform"):
+def gen_Pick(distr = "Traingular"):
     if distr == "Traingular":
         # picking number will be triangular distribution between 0 and 1
         x = np.random.triangular(0, 0, 1)
@@ -141,7 +141,7 @@ def mutate(genome):
 # =============================================================================
 # execution of GA
 # =============================================================================
-s = Simulation(pictures = False)
+s = Simulation(L = 1, startTime = '2017-09-27 15:02:40', pictures = False)
 population = gen_Population(len(s.Locomotives))
 
 # set simulation baseline

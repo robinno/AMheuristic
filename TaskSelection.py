@@ -282,6 +282,13 @@ def pick_minDist(G, DiG, t, Loco, Torpedoes, prio = False, storePic = True): # s
         AvTasks = sorted(AvTasks, key = lambda i: len(i[1]) + len(i[2]))
         return AvTasks[0]
     
+def pick_Hfirst(G, DiG, t, Loco, Torpedoes, prio = False, storePic = True): # select the minimimum dist task
+    AvTasks = available_tasks(G, DiG, t, Loco, Torpedoes, prio = prio, storePic = storePic)
+    if len(AvTasks) > 0:
+        # sort on total distance
+        AvTasks = sorted(AvTasks, key = lambda i: i[0].name == "-> H" and i[3] == 0)
+        return AvTasks[0]
+    
 def pick(G, DiG, t, Loco, Torpedoes, strat, prio = False, storePic = True):    
     AvTasks = available_tasks(G, DiG, t, Loco, Torpedoes, prio = prio, storePic = storePic)
     if len(AvTasks) > 0:

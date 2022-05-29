@@ -122,9 +122,10 @@ class Torpedo:
                     self.taskTimeCounter = task.fixedTime
                 else:
                     raise Exception("Not at right location!")
-            elif task.name == "Fill" and t == task.EST:
+            elif task.name == "Fill" and t >= task.EST:
                 if self.location[t-1] == task.castingNode:
-                    self.taskTimeCounter = task.fixedTime
+                    if t >= task.EFT:
+                        self.TaskFinished(t)
                 else:
                     raise Exception("Not at right location!")
         
